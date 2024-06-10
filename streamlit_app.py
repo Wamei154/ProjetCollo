@@ -1,17 +1,14 @@
 import os
+import subprocess
 import streamlit as st
 
-# Debugging: List installed packages
-import subprocess
-installed_packages = subprocess.check_output(['pip', 'freeze']).decode('utf-8')
-st.text(installed_packages)
+# Install openpyxl
+subprocess.run(['pip', 'install', 'openpyxl'])
 
 from openpyxl import load_workbook
 from datetime import datetime
 from PIL import Image
 
-# Votre logique Streamlit ici
-st.write("openpyxl imported successfully")
 
 # Function to get the resource path
 def resource_path(relative_path):
