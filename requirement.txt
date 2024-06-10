@@ -1,1 +1,1 @@
-openpyxl
+pip install openpyxl
