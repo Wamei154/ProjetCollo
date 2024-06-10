@@ -15,6 +15,7 @@ def flatten_list(nested_list):
     return [' '.join(inner_list) for inner_list in nested_list]
 
 # Function to load data
+@st.cache_data
 def load_data():
     """ Load data from Excel files """
     colloscope_file = resource_path('Colloscope.xlsx')
@@ -64,6 +65,15 @@ def load_settings():
                 groupe = lines[0].strip()
                 semaine = lines[1].strip()
     return groupe, semaine
+
+# Function to display data
+def colo(groupe, semaine, data_dict, data_dict1):
+    m = []
+    s = data_dict[groupe][semaine - 1]
+    for k in range(len(s)):
+        joined_elements = flatten_list(data_dict1[s[k]])
+        m.append(joined_elements)
+    return m
 
 # Display data in Streamlit
 def display_data():
