@@ -1,24 +1,16 @@
 import os
-import sys
 import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
+from PIL import Image
+import pandas as pd
 
 # Function to get the resource path
 def resource_path(relative_path):
-    """Returns the absolute path to the file, using sys._MEIPASS if the application is packaged."""
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
+    """ Return the absolute path to the resource """
+    base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-# Function to flatten nested lists
-def flatten_list(nested_list):
-    """Flattens a list of lists into a list of strings."""
-    return [' '.join(inner_list) for inner_list in nested_list]
-
-# Function to get data to display
 def colo(groupe, semaine, data_dict, data_dict1):
     """Function to get the data to display in the interface."""
     m = []
@@ -28,12 +20,18 @@ def colo(groupe, semaine, data_dict, data_dict1):
         m.append(joined_elements)
     return m
 
-# Function to load data from Excel files
-@st.cache
+# Flatten a nested list
+def flatten_list(nested_list):
+    return [' '.join(inner_list) for inner_list in nested_list]
+
+# Function to load data
 def load_data():
-    """Loads data from Excel files."""
-    excel_colloscope = load_workbook(resource_path('Colloscope.xlsx'))
-    excel_legende = load_workbook(resource_path('Legende.xlsx'))
+    """ Load data from Excel files """
+    colloscope_file = resource_path('Colloscope.xlsx')
+    legende_file = resource_path('Legende.xlsx')
+
+    excel_colloscope = load_workbook(colloscope_file)
+    excel_legende = load_workbook(legende_file)
 
     sheet_colloscope = excel_colloscope.active
     sheet_legende = excel_legende.active
@@ -55,22 +53,18 @@ def load_data():
 
     return data_dict, data_dict1
 
-# Function to get the current week
+# Function to get the current week number
 def get_current_week():
-    """Returns the current week number."""
     now = datetime.now()
     current_week = now.isocalendar()[1]
     return min(current_week, 30)
 
-# Function to save settings
+# Save and load settings
 def save_settings(groupe, semaine):
-    """Saves the selected group and week to a config file."""
     with open('config.txt', 'w') as f:
         f.write(f"{groupe}\n{semaine}")
 
-# Function to load settings
 def load_settings():
-    """Loads the previously selected group and week from a config file."""
     groupe = "G10"
     semaine = str(get_current_week())
     if os.path.exists('config.txt'):
@@ -81,47 +75,65 @@ def load_settings():
                 semaine = lines[1].strip()
     return groupe, semaine
 
-# Load settings
-groupe_default, semaine_default = load_settings()
+# Display data in Streamlit
+def display_data():
+    groupe = st.session_state.groupe
+    semaine = st.session_state.semaine
 
-# Initialize click counter
-if 'click_count' not in st.session_state:
-    st.session_state.click_count = 0
+    save_settings(groupe, semaine)  # Save the selected group and week
 
-# Streamlit app layout
-st.title("Colle TSI")
-
-groupe = st.text_input("Groupe:", value=groupe_default)
-semaine = st.text_input("Semaine:", value=semaine_default)
-
-if st.button("Afficher"):
-    st.session_state.click_count += 1
-    save_settings(groupe, semaine)  # Save selected group and week
-    
     semaine = int(semaine)
     if semaine < 1 or semaine > 30:
         semaine = get_current_week()
-    
+
     try:
         group_number = int(groupe[1:])
         if group_number > 100:
             groupe = 'G100'
     except ValueError:
         groupe = 'G10'
-    
+
     data_dict, data_dict1 = load_data()
-    
+
     if groupe not in data_dict:
         groupe = 'G10'
-    
+
     data = colo(groupe, semaine, data_dict, data_dict1)
     
-    # Display data in a table
-    st.table(data)
+    st.title("COLLOSCOPE")
     
-    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
-    
-    if st.session_state.click_count == 50:
-        image_path = resource_path('IMG_20240604_085232.jpg')
-        st.image(image_path, caption='Special Image', use_column_width=True)
+    # Convert the data to a DataFrame and display without headers and index
+    df = pd.DataFrame(data)
+    st.table(df)
 
+    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
+
+    # Check the number of times the button has been clicked
+    st.session_state.click_count += 1
+
+    if st.session_state.click_count == 50:
+        display_image(resource_path('IMG_20240604_085232.jpg'))
+
+# Display an image in Streamlit
+def display_image(image_path):
+    img = Image.open(image_path)
+    st.image(img, caption='Image Caption', use_column_width=True)
+
+# Main function
+def main():
+    st.title("")
+
+    st.sidebar.header("Paramètres")
+    groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
+    semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
+
+    if 'click_count' not in st.session_state:
+        st.session_state.click_count = 0
+
+    st.sidebar.button("Afficher", on_click=display_data)
+
+    st.session_state.groupe = groupe
+    st.session_state.semaine = semaine
+
+if __name__ == "__main__":
+    main()
