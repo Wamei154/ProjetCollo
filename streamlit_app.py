@@ -3,22 +3,12 @@ import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
 from PIL import Image
-import pandas as pd
 
 # Function to get the resource path
 def resource_path(relative_path):
     """ Return the absolute path to the resource """
     base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
-
-def colo(groupe, semaine, data_dict, data_dict1):
-    """Function to get the data to display in the interface."""
-    m = []
-    s = data_dict[groupe][semaine - 1]
-    for k in range(len(s)):
-        joined_elements = flatten_list(data_dict1[s[k]])
-        m.append(joined_elements)
-    return m
 
 # Flatten a nested list
 def flatten_list(nested_list):
@@ -100,12 +90,9 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
     
-    st.title("COLLOSCOPE")
+    for row in data:
+        st.write(row)
     
-    # Convert the data to a DataFrame and display without headers and index
-    df = pd.DataFrame(data)
-    st.table(df)
-
     st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
 
     # Check the number of times the button has been clicked
@@ -121,7 +108,7 @@ def display_image(image_path):
 
 # Main function
 def main():
-    st.title("")
+    st.title("Colle TSI")
 
     st.sidebar.header("Paramètres")
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
