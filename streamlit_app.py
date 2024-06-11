@@ -112,30 +112,17 @@ def display_data():
     st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul")
     
 # Main function
-# Main function
 def main():
     st.title("")
 
-    # Initialize session_state keys if not already initialized
-    if 'groupe_input' not in st.session_state:
-        st.session_state.groupe_input = load_settings()[0]
-    if 'semaine_input' not in st.session_state:
-        st.session_state.semaine_input = load_settings()[1]
-
     st.sidebar.header("Paramètres")
-    groupe_input = st.sidebar.text_input("Groupe", value=st.session_state.groupe_input, key="groupe_input")
-    semaine_input = st.sidebar.text_input("Semaine", value=st.session_state.semaine_input, key="semaine_input")
+    groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
+    semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
-    # Update session_state when Enter key is pressed in groupe_input or semaine_input
-    if st.session_state.groupe_input != groupe_input or st.session_state.semaine_input != semaine_input:
-        st.session_state.groupe_input = groupe_input
-        st.session_state.semaine_input = semaine_input
-        st.session_state.groupe = groupe_input
-        st.session_state.semaine = semaine_input
+    st.sidebar.button("Afficher", on_click=display_data)
 
-        # Display data based on updated input
-        display_data()
+    st.session_state.groupe = groupe
+    st.session_state.semaine = semaine
 
 if __name__ == "__main__":
     main()
-
