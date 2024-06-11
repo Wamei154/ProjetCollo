@@ -85,7 +85,7 @@ def display_data():
 
     semaine = int(semaine)
     if semaine < 1 or semaine > 30:
-        semaine = get_current_week()
+        semaine = st.session_state.semaine
 
     try:
         group_number = int(groupe[1:])
