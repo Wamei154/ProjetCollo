@@ -1,5 +1,4 @@
 import os
-import subprocess
 import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
@@ -102,21 +101,13 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-    df = pd.DataFrame(data)
+    # Create DataFrame with custom column headers
+    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     st.table(df)
     
+    # Display the authorship text at the bottom
     st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
 
-    # Check the number of times the button has been clicked
-    st.session_state.click_count += 1
-
-    if st.session_state.click_count == 50:
-        display_image(resource_path('IMG_20240604_085232.jpg'))
-
-# Display an image in Streamlit
-def display_image(image_path):
-    img = Image.open(image_path)
-    st.image(img, caption='Image Caption', use_column_width=True)
 
 # Main function
 def main():
@@ -125,9 +116,6 @@ def main():
     st.sidebar.header("Paramètres")
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
-
-    if 'click_count' not in st.session_state:
-        st.session_state.click_count = 0
 
     st.sidebar.button("Afficher", on_click=display_data)
 
