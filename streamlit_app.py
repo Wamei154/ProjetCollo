@@ -101,15 +101,17 @@ def display_data():
 
     rows = colo(groupe, semaine, data_dict, data_dict1)
 
-    # Display the data in a well-structured table
+    # Display the data in a table format with asterisks separating rows
     if rows:
         st.markdown("### Tableau des informations")
         st.write("\n")
-        st.write("| Professeur | Jour | Heure | Salle |")
-        st.write("| --- | --- | --- | --- |")
-        for row in rows:
-            st.write(f"| {row[0]} | {row[1]} | {row[2]} | {row[3]} |")
-    
+        for i, row in enumerate(rows):
+            st.write("|".join(row))
+            if i < len(rows) - 1:
+                st.write("---|---|---|---")
+            else:
+                st.write("\n")
+
     # Display the authorship text at the bottom
     st.write("\nFait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
 
