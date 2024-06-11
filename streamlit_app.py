@@ -69,12 +69,12 @@ def load_settings():
 
 # Function to display data
 def colo(groupe, semaine, data_dict, data_dict1):
+    m = []
     s = data_dict[groupe][semaine - 1]
-    rows = []
     for k in range(len(s)):
         joined_elements = flatten_list(data_dict1[s[k]])
-        rows.append(joined_elements)
-    return rows
+        m.append(joined_elements)
+    return m
 
 # Display data in Streamlit
 def display_data():
@@ -99,21 +99,16 @@ def display_data():
     if groupe not in data_dict:
         groupe = 'G10'
 
-    rows = colo(groupe, semaine, data_dict, data_dict1)
+    data = colo(groupe, semaine, data_dict, data_dict1)
 
-    # Display the data in a table format with asterisks separating rows
-    if rows:
-        st.markdown("### Tableau des informations")
-        st.write("\n")
-        for i, row in enumerate(rows):
-            st.write("|".join(row))
-            if i < len(rows) - 1:
-                st.write("---|---|---|---")
-            else:
-                st.write("\n")
+    # Create DataFrame with custom column headers
+    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
 
+    # Hide the index of the DataFrame
+    st.table(df.style.hide(axis='index'))
+    
     # Display the authorship text at the bottom
-    st.write("\nFait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
+    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
 
     # Check the number of times the button has been clicked
     st.session_state.click_count += 1
