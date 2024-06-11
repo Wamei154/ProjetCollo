@@ -103,7 +103,6 @@ def display_data():
 
     # Create DataFrame with custom column headers
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
-    df = pd.DataFrame(data, rows=["*"])
 
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
