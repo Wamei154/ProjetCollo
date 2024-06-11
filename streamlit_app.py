@@ -4,7 +4,7 @@ import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
 from PIL import Image
-
+import pandas as pd
 
 # Function to get the resource path
 def resource_path(relative_path):
@@ -101,9 +101,9 @@ def display_data():
         groupe = 'G10'
 
     data = colo(groupe, semaine, data_dict, data_dict1)
-    
-    for row in data:
-        st.write(row)
+
+    df = pd.DataFrame(data)
+    st.table(df)
     
     st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
 
