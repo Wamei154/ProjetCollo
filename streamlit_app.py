@@ -104,8 +104,11 @@ def display_data():
     # Create DataFrame with custom column headers
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
 
-    # Hide the index of the DataFrame
-    st.table(df.style.hide(axis='index'))
+    # Convert DataFrame to list of dictionaries
+    data_list = df.to_dict(orient='records')
+
+    # Hide the index by using st.table() directly on the list of dictionaries
+    st.table(data_list)
     
     # Display the authorship text at the bottom
     st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
