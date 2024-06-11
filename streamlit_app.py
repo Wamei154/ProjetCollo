@@ -3,7 +3,6 @@ import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
 from PIL import Image
-import pandas as pd
 
 # Function to get the resource path
 def resource_path(relative_path):
@@ -69,12 +68,12 @@ def load_settings():
 
 # Function to display data
 def colo(groupe, semaine, data_dict, data_dict1):
-    m = []
     s = data_dict[groupe][semaine - 1]
+    rows = []
     for k in range(len(s)):
         joined_elements = flatten_list(data_dict1[s[k]])
-        m.append(joined_elements)
-    return m
+        rows.append(joined_elements)
+    return rows
 
 # Display data in Streamlit
 def display_data():
@@ -99,19 +98,17 @@ def display_data():
     if groupe not in data_dict:
         groupe = 'G10'
 
-    data = colo(groupe, semaine, data_dict, data_dict1)
+    rows = colo(groupe, semaine, data_dict, data_dict1)
 
-    # Create DataFrame with custom column headers
-    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
+    # Display the data in a table format
+    if rows:
+        st.write("Professeur  |  Jour  |  Heure  |  Salle")
+        st.write("--- | --- | --- | ---")
+        for row in rows:
+            st.write(f"{row[0]}  |  {row[1]}  |  {row[2]}  |  {row[3]}")
 
-    # Convert DataFrame to list of dictionaries
-    data_list = df.to_dict(orient='records')
-
-    # Hide the index by using st.table() directly on the list of dictionaries
-    st.table(data_list)
-    
     # Display the authorship text at the bottom
-    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
+    st.write("\nFait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul")
 
     # Check the number of times the button has been clicked
     st.session_state.click_count += 1
