@@ -111,6 +111,7 @@ def display_data():
     # Display the authorship text at the bottom
     st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul")
     
+# Main function
 def main():
     st.title("")
 
