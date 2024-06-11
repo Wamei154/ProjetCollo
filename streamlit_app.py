@@ -105,7 +105,7 @@ def display_data():
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     
     # Replace the default index with '*' instead of numerical values
-    df.index = ['*' + str(i + 1) for i in range(len(df))]
+    df.index = ['*' for i in range(len(df))]
 
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
