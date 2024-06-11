@@ -1,7 +1,6 @@
 import os
 import subprocess
 import streamlit as st
-subprocess.run(['pip', 'install', 'openpyxl'])
 from openpyxl import load_workbook
 from datetime import datetime
 from PIL import Image
