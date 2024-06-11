@@ -120,7 +120,7 @@ def display_image(image_path):
 
 # Main function
 def main():
-    st.title("Colle TSI")
+    st.title("")
 
     st.sidebar.header("Paramètres")
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
