@@ -105,13 +105,13 @@ def display_data():
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     
     # Replace the default index with '*' instead of numerical values
-    df.index = ['*' for i in range(len(df))]
+    df.index = ['' for i in range(len(df))]
 
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
     
     # Display the authorship text at the bottom
-    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier")
+    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul")
     
 # Main function
 def main():
