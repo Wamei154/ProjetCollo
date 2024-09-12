@@ -1,8 +1,9 @@
 import os
 import streamlit as st
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from datetime import datetime
 import pandas as pd
+import io
 
 # Function to get the resource path
 def resource_path(relative_path):
@@ -77,6 +78,18 @@ def colo(groupe, semaine, data_dict, data_dict1):
         m.append(joined_elements)
     return m
 
+# Function to create an Excel file from data
+def create_excel_file(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Data')
+    output.seek(0)
+    return output
+
+# Function to get the path of the .exe file
+def get_exe_file_path(filename):
+    return resource_path(filename)
+
 # Display data in Streamlit
 def display_data():
     groupe = st.session_state.groupe
@@ -110,14 +123,33 @@ def display_data():
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
 
+    # Create and display download button for Excel file
+    excel_file = create_excel_file(df)
+    st.download_button(
+        label="Télécharger le fichier Excel",
+        data=excel_file,
+        file_name=f"Data_{groupe}_{semaine}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    # Display download button for .exe file
+    exe_file_path = get_exe_file_path('yourfile.exe')  # Replace 'yourfile.exe' with the actual filename
+    with open(exe_file_path, 'rb') as exe_file:
+        st.download_button(
+            label="Télécharger le fichier EXE",
+            data=exe_file,
+            file_name='yourfile.exe',  # Replace with the desired name for the downloaded file
+            mime='application/x-msdownload'
+        )
+
 # Main function
 def main():
-    st.title("")
+    st.title("Application de gestion de données")
 
     st.sidebar.header("Paramètres")
 
     # Adding a class selector
-    classe = st.sidebar.selectbox("Classe", options=["1", "2"], index=0)
+    classe = st.sidebar.selectbox("Classe", options=["TSI 1", "TSI 2"], index=0)
 
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
