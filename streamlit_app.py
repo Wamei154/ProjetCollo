@@ -121,10 +121,24 @@ def main():
 
     st.sidebar.markdown(
         """
-        <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px;">
+        <style>
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        </style>
+        <div class="footer">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
+        unsafe_allow_html=True
     )
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
