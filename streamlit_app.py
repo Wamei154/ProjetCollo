@@ -19,8 +19,8 @@ def flatten_list(nested_list):
 @st.cache_data
 def load_data():
     """ Load data from Excel files """
-    colloscope_file = resource_path('Colloscope.xlsx')
-    legende_file = resource_path('Legende.xlsx')
+    colloscope_file = resource_path('Colloscope2.xlsx')
+    legende_file = resource_path('Legende2.xlsx')
 
     excel_colloscope = load_workbook(colloscope_file)
     excel_legende = load_workbook(legende_file)
