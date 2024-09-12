@@ -116,6 +116,9 @@ def display_data():
         f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
         unsafe_allow_html=True
     )
+# Function to create a Google Drive link
+def get_drive_link(file_id):
+    return f"https://drive.google.com/uc?export=download&id={file_id}"    
 
 # Main function
 def main():
@@ -126,6 +129,14 @@ def main():
 
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
+
+        # Add download link for .exe file in the sidebar
+    drive_file_id = "1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn"  # Replace with your file's ID from Google Drive
+    drive_link = get_drive_link(drive_file_id)
+    st.sidebar.markdown(
+        f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
+        unsafe_allow_html=True
+    )
 
     st.sidebar.button("Afficher", on_click=display_data)
 
