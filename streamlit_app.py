@@ -4,17 +4,17 @@ from openpyxl import load_workbook
 from datetime import datetime
 import pandas as pd
 
-# Function to get the resource path
+
 def resource_path(relative_path):
     """ Return the absolute path to the resource """
     base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-# Flatten a nested list
+
 def flatten_list(nested_list):
     return [' '.join(inner_list) for inner_list in nested_list]
 
-# Function to load data
+
 @st.cache_data
 def load_data(classe):
     """ Load data from Excel files based on the selected class """
@@ -44,13 +44,13 @@ def load_data(classe):
 
     return data_dict, data_dict1
 
-# Function to get the current week number
+
 def get_current_week():
     now = datetime.now()
     current_week = now.isocalendar()[1]
     return min(current_week, 30)
 
-# Save and load settings
+
 def save_settings(groupe, semaine, classe):
     with open('config.txt', 'w') as f:
         f.write(f"{groupe}\n{semaine}\n{classe}")
@@ -68,7 +68,7 @@ def load_settings():
                 classe = lines[2].strip()
     return groupe, semaine, classe
 
-# Function to display data
+
 def colo(groupe, semaine, data_dict, data_dict1):
     m = []
     s = data_dict[groupe][semaine - 1]
@@ -77,13 +77,13 @@ def colo(groupe, semaine, data_dict, data_dict1):
         m.append(joined_elements)
     return m
 
-# Display data in Streamlit
+
 def display_data():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
 
-    save_settings(groupe, semaine, classe)  # Save the selected group, week, and class
+    save_settings(groupe, semaine, classe)  
 
     semaine = int(semaine)
     if semaine < 1 or semaine > 30:
@@ -103,30 +103,30 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-    # Create DataFrame with custom column headers
+   
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
 
-    # Hide the index of the DataFrame
+   
     st.table(df.style.hide(axis='index'))
    
 # Main function
 def main():
     st.sidebar.header("Paramètres")
 
-    # Adding a class selector
+    
     classe = st.sidebar.selectbox("Classe", options=["1", "2"], index=0)
 
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
-        # Add download link for .exe file in the sidebar
-    drive_file_id = "1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn"  # Replace with your file's ID from Google Drive
+   
     drive_link = 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'
-    st.sidebar.button(
-        f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
-        unsafe_allow_html=True
-    )
+    if st.sidebar.button("Télécharger le fichier EXE"):
+        st.sidebar.markdown(
+            f'<a href="{drive_link}" target="_blank" download>Cliquer ici pour télécharger le fichier EXE</a>',
+            unsafe_allow_html=True
+        )
 
     st.sidebar.button("Afficher", on_click=display_data)
 
