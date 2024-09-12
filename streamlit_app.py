@@ -109,17 +109,7 @@ def display_data():
 
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
-
-        # Display button to redirect to Google Drive
-    drive_link = "https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing"  # Replace with your file's ID
-    st.markdown(
-        f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
-        unsafe_allow_html=True
-    )
-# Function to create a Google Drive link
-def get_drive_link(file_id):
-    return f"https://drive.google.com/uc?export=download&id={file_id}"    
-
+   
 # Main function
 def main():
     st.sidebar.header("Paramètres")
@@ -132,7 +122,7 @@ def main():
 
         # Add download link for .exe file in the sidebar
     drive_file_id = "1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn"  # Replace with your file's ID from Google Drive
-    drive_link = get_drive_link(drive_file_id)
+    drive_link = 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'
     st.sidebar.markdown(
         f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
         unsafe_allow_html=True
