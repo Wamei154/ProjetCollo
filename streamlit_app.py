@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from openpyxl import load_workbook, Workbook
+from openpyxl import load_workbook
 from datetime import datetime
 import pandas as pd
 import io
@@ -22,8 +22,12 @@ def load_data(classe):
     colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
     legende_file = resource_path(f'Legende{classe}.xlsx')
 
-    excel_colloscope = load_workbook(colloscope_file)
-    excel_legende = load_workbook(legende_file)
+    try:
+        excel_colloscope = load_workbook(colloscope_file)
+        excel_legende = load_workbook(legende_file)
+    except Exception as e:
+        st.error(f"Error loading Excel files: {e}")
+        return {}, {}
 
     sheet_colloscope = excel_colloscope.active
     sheet_legende = excel_legende.active
@@ -86,10 +90,6 @@ def create_excel_file(df):
     output.seek(0)
     return output
 
-# Function to get the path of the .exe file
-def get_exe_file_path(filename):
-    return resource_path(filename)
-
 # Display data in Streamlit
 def display_data():
     groupe = st.session_state.groupe
@@ -132,20 +132,15 @@ def display_data():
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # Display download button for .exe file
-    exe_file_path = get_exe_file_path('yourfile.exe')  # Replace 'yourfile.exe' with the actual filename
-    with open(exe_file_path, 'rb') as exe_file:
-        st.download_button(
-            label="Télécharger le fichier EXE",
-            data=exe_file,
-            file_name='yourfile.exe',  # Replace with the desired name for the downloaded file
-            mime='application/x-msdownload'
-        )
+    # Display button to redirect to Google Drive
+    drive_link = "https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing"  # Replace with your file's ID
+    st.markdown(
+        f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
+        unsafe_allow_html=True
+    )
 
 # Main function
 def main():
-    st.title("Application de gestion de données")
-
     st.sidebar.header("Paramètres")
 
     # Adding a class selector
