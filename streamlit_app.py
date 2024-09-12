@@ -123,7 +123,7 @@ def main():
         # Add download link for .exe file in the sidebar
     drive_file_id = "1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn"  # Replace with your file's ID from Google Drive
     drive_link = 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'
-    st.sidebar.markdown(
+    st.sidebar.button(
         f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
         unsafe_allow_html=True
     )
