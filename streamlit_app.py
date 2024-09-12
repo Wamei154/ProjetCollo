@@ -112,7 +112,7 @@ def display_data():
 
 # Main function
 def main():
-    st.title("Application de Gestion des Cours")
+    st.title("")
 
     st.sidebar.header("Paramètres")
 
