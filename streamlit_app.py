@@ -52,20 +52,22 @@ def get_current_week():
     return min(current_week, 30)
 
 # Save and load settings
-def save_settings(groupe, semaine):
+def save_settings(groupe, semaine, classe):
     with open('config.txt', 'w') as f:
-        f.write(f"{groupe}\n{semaine}")
+        f.write(f"{groupe}\n{semaine}\n{classe}")
 
 def load_settings():
     groupe = "G10"
     semaine = str(get_current_week())
+    classe = "1"  # Default class
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as f:
             lines = f.readlines()
-            if len(lines) >= 2:
+            if len(lines) >= 3:
                 groupe = lines[0].strip()
                 semaine = lines[1].strip()
-    return groupe, semaine
+                classe = lines[2].strip()
+    return groupe, semaine, classe
 
 # Function to display data
 def colo(groupe, semaine, data_dict, data_dict1):
@@ -80,8 +82,9 @@ def colo(groupe, semaine, data_dict, data_dict1):
 def display_data():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
+    classe = st.session_state.classe
 
-    save_settings(groupe, semaine)  # Save the selected group and week
+    save_settings(groupe, semaine, classe)  # Save the selected group, week, and class
 
     semaine = int(semaine)
     if semaine < 1 or semaine > 30:
@@ -114,6 +117,10 @@ def main():
     st.title("")
 
     st.sidebar.header("Paramètres")
+
+    # Adding a class selector
+    classe = st.sidebar.selectbox("Classe", options=["1", "2"], index=0)
+
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
@@ -129,6 +136,7 @@ def main():
     )
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
+    st.session_state.classe = classe  # Store the class in session state
 
 if __name__ == "__main__":
     main()
