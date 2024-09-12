@@ -3,7 +3,6 @@ import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
 import pandas as pd
-import io
 
 # Function to get the resource path
 def resource_path(relative_path):
@@ -22,12 +21,8 @@ def load_data(classe):
     colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
     legende_file = resource_path(f'Legende{classe}.xlsx')
 
-    try:
-        excel_colloscope = load_workbook(colloscope_file)
-        excel_legende = load_workbook(legende_file)
-    except Exception as e:
-        st.error(f"Error loading Excel files: {e}")
-        return {}, {}
+    excel_colloscope = load_workbook(colloscope_file)
+    excel_legende = load_workbook(legende_file)
 
     sheet_colloscope = excel_colloscope.active
     sheet_legende = excel_legende.active
@@ -82,14 +77,6 @@ def colo(groupe, semaine, data_dict, data_dict1):
         m.append(joined_elements)
     return m
 
-# Function to create an Excel file from data
-def create_excel_file(df):
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Data')
-    output.seek(0)
-    return output
-
 # Display data in Streamlit
 def display_data():
     groupe = st.session_state.groupe
@@ -123,16 +110,7 @@ def display_data():
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
 
-    # Create and display download button for Excel file
-    excel_file = create_excel_file(df)
-    st.download_button(
-        label="Télécharger le fichier Excel",
-        data=excel_file,
-        file_name=f"Data_{groupe}_{semaine}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    # Display button to redirect to Google Drive
+        # Display button to redirect to Google Drive
     drive_link = "https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing"  # Replace with your file's ID
     st.markdown(
         f'<a href="{drive_link}" target="_blank" class="btn">Le fichier EXE</a>',
@@ -144,7 +122,7 @@ def main():
     st.sidebar.header("Paramètres")
 
     # Adding a class selector
-    classe = st.sidebar.selectbox("Classe", options=["TSI 1", "TSI 2"], index=0)
+    classe = st.sidebar.selectbox("Classe", options=["1", "2"], index=0)
 
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
