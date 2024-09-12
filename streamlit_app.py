@@ -122,11 +122,8 @@ def main():
 
    
     drive_link = 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'
-    if st.sidebar.button("Télécharger le fichier EXE"):
-        st.sidebar.markdown(
-            f'<a href="{drive_link}" target="_blank" download>Cliquer ici pour télécharger le fichier EXE</a>',
-            unsafe_allow_html=True
-        )
+    st.sidebar.button("Télécharger le fichier EXE", on_click=drive_link)
+
 
     st.sidebar.button("Afficher", on_click=display_data)
 
