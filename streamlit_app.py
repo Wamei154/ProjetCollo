@@ -119,10 +119,10 @@ def main():
 
     st.sidebar.button("Afficher", on_click=display_data)
 
-    st.sidebar.markdown(
+     st.sidebar.markdown(
         '<p style="font-size: 10px;">Fait par BERRY Mael, avec l\'aide de SOUVELAIN Gauthier et de DAMBRY Paul</p>',
         unsafe_allow_html=True
-(
+    )
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
 
