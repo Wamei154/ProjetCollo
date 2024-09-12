@@ -2,7 +2,6 @@ import os
 import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
-from io import BytesIO
 import pandas as pd
 
 # Function to get the resource path
@@ -78,17 +77,7 @@ def colo(groupe, semaine, data_dict, data_dict1):
         m.append(joined_elements)
     return m
 
-# Function to convert data to Excel file
-def create_excel_file(data):
-    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
-    df.index = ['' for i in range(len(df))]
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Sheet1')
-    output.seek(0)
-    return output
-
-# Display data and add download button
+# Display data in Streamlit
 def display_data():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
@@ -121,25 +110,17 @@ def display_data():
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
 
-    # Create Excel file for download
-    excel_file = create_excel_file(data)
-
-    # Add download button
-    st.download_button(
-        label="Télécharger les données",
-        data=excel_file,
-        file_name=f'donnees_semaine_{semaine}.xlsx',
-        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    
 # Main function
 def main():
     st.title("Application de Gestion des Cours")
 
     st.sidebar.header("Paramètres")
+
+    # Adding a class selector
+    classe = st.sidebar.selectbox("Classe", options=["1", "2"], index=0)
+
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
-    classe = st.sidebar.selectbox("Classe", ["1", "2"], index=["1", "2"].index(load_settings()[2]))
 
     st.sidebar.button("Afficher", on_click=display_data)
 
@@ -153,7 +134,7 @@ def main():
     )
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
-    st.session_state.classe = classe
+    st.session_state.classe = classe  # Store the class in session state
 
 if __name__ == "__main__":
     main()
