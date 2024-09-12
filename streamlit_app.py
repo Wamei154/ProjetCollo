@@ -2,7 +2,6 @@ import os
 import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
-from PIL import Image
 import pandas as pd
 
 # Function to get the resource path
@@ -17,10 +16,10 @@ def flatten_list(nested_list):
 
 # Function to load data
 @st.cache_data
-def load_data():
-    """ Load data from Excel files """
-    colloscope_file = resource_path('Colloscope2.xlsx')
-    legende_file = resource_path('Legende2.xlsx')
+def load_data(classe):
+    """ Load data from Excel files based on the selected class """
+    colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
+    legende_file = resource_path(f'Legende{classe}.xlsx')
 
     excel_colloscope = load_workbook(colloscope_file)
     excel_legende = load_workbook(legende_file)
@@ -97,7 +96,7 @@ def display_data():
     except ValueError:
         groupe = 'G10'
 
-    data_dict, data_dict1 = load_data()
+    data_dict, data_dict1 = load_data(classe)
 
     if groupe not in data_dict:
         groupe = 'G10'
@@ -110,8 +109,7 @@ def display_data():
 
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
-    
-    
+
 # Main function
 def main():
     st.title("")
