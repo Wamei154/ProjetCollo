@@ -115,7 +115,7 @@ def main():
     st.sidebar.header("Paramètres")
 
     
-    classe = st.sidebar.selectbox("Classe", options=["TSI 1", "TSI 2"], index=0)
+    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
 
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
