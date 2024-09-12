@@ -108,8 +108,6 @@ def display_data():
     # Hide the index of the DataFrame
     st.table(df.style.hide(axis='index'))
     
-    # Display the authorship text at the bottom
-    st.write("Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul")
     
 # Main function
 def main():
@@ -120,6 +118,10 @@ def main():
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
     st.sidebar.button("Afficher", on_click=display_data)
+
+    st.sidebar.markdown(
+        '<p style="font-size: 10px;">Fait par BERRY Mael, avec l\'aide de SOUVELAIN Gauthier et de DAMBRY Paul</p>',
+        unsafe_allow_html=True
 
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
