@@ -34,13 +34,13 @@ def load_data():
     for row in sheet_colloscope.iter_rows(min_row=2, values_only=True):
         key = row[0]
         values = row[1:]
-        values = [v.split() for v in values]
+        values = [v.split() if v is not None else [] for v in values]
         data_dict[key] = values
 
     for row in sheet_legende.iter_rows(min_row=1, values_only=True):
         key1 = row[0]
         values1 = row[1:]
-        values1 = [v.split() for v in values1]
+        values1 = [v.split() if v is not None else [] for v in values1]
         data_dict1[key1] = values1
 
     return data_dict, data_dict1
