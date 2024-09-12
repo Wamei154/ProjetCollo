@@ -101,6 +101,12 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
+    valid_data = [row for row in data if len(row) == 4]
+
+    if not valid_data:
+        st.error("Les données ne sont pas au format attendu ou sont manquantes.")
+        return
+
     # Create DataFrame with custom column headers
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
