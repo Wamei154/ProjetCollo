@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 from datetime import datetime
 import pandas as pd
 import time 
-
+import pytz
 
 def resource_path(relative_path):
     """ Return the absolute path to the resource """
@@ -144,7 +144,12 @@ def display_data():
 
     st.table(df.style.hide(axis='index'))
 
-    current_time = datetime.now().strftime("%H:%M:%S")
+    timezone = pytz.timezone("Europe/Paris")
+
+    # Obtenir l'heure actuelle dans le fuseau horaire spécifié
+    current_time = datetime.now(timezone).strftime("%H:%M:%S")
+
+    # Afficher l'heure actuelle
     st.write("Heure actuelle : ", current_time)
 
 
