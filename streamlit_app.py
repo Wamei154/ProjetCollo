@@ -151,7 +151,7 @@ def display_data():
     current_date = datetime.now(timezone).strftime("%d-%m-%Y")
 
     # Afficher la date actuelle
-    st.write("Date actuelle : ", current_date)
+    st.sidebar.write("Date actuelle : ", current_date)
 
 
 def main():
