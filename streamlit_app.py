@@ -71,11 +71,26 @@ def load_settings():
 
 def colo(groupe, semaine, data_dict, data_dict1):
     m = []
+    # Vérification de la clé groupe
+    if groupe not in data_dict:
+        st.error(f"Le groupe '{groupe}' n'existe pas dans les données.")
+        return m
+
+    # Vérification de l'index semaine
+    if semaine - 1 >= len(data_dict[groupe]):
+        st.error(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
+        return m
+
     s = data_dict[groupe][semaine - 1]
     for k in range(len(s)):
+        # Vérification des clés dans data_dict1
+        if s[k] not in data_dict1:
+            st.error(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
+            continue
         joined_elements = flatten_list(data_dict1[s[k]])
         m.append(joined_elements)
     return m
+
 
 
 def display_data():
