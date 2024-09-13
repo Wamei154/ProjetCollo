@@ -145,7 +145,7 @@ def display_data():
     st.table(df.style.hide(axis='index'))
 
 def main():
-    df = pd.read_excel(colloscope_file)
+    df = pd.read_excel(sheet_colloscope)
     
     st.sidebar.header("Sélection")
 
