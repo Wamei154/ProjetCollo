@@ -112,12 +112,32 @@ def display_data():
     st.table(df.style.hide(axis='index'))
 
 
+def load_settings():
+    groupe = "G10"
+    semaine = str(get_current_week())
+    classe = "1"  # Default class
+    if os.path.exists('config.txt'):
+        with open('config.txt', 'r') as f:
+            lines = f.readlines()
+            if len(lines) >= 3:
+                groupe = lines[0].strip()
+                semaine = lines[1].strip()
+                classe = lines[2].strip()
+    return groupe, semaine, classe
+
+
 def main():
     st.sidebar.header("Sélection")
 
+    # Charger les paramètres et vérifier qu'ils sont valides
+    settings = load_settings()
+    if not all(isinstance(x, str) for x in settings):
+        st.error("Les paramètres chargés depuis le fichier de configuration sont invalides.")
+        return
+
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
-    groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
-    semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
+    groupe = st.sidebar.text_input("Groupe", value=settings[0])
+    semaine = st.sidebar.text_input("Semaine", value=settings[1])
 
     if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'):
         st.sidebar.markdown("En Construction", unsafe_allow_html=True)
@@ -136,6 +156,11 @@ def main():
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe  
+
+
+if __name__ == "__main__":
+    main()
+
 
 
 if __name__ == "__main__":
