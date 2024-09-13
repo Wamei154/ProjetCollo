@@ -144,12 +144,16 @@ def display_data():
 
     st.table(df.style.hide(axis='index'))
 
-    while True:
-    # Obtenir l'heure actuelle
     current_time = datetime.now().strftime("%H:%M:%S")
-    
-    # Afficher l'heure actuelle
     st.write("Heure actuelle : ", current_time)
+
+# Affichage initial
+display_time()
+
+# Boucle pour mettre à jour l'heure chaque seconde
+while True:
+    # Mettre à jour l'heure
+    display_time()
     
     # Pause de 1 seconde avant de mettre à jour
     time.sleep(1)
