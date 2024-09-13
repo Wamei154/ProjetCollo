@@ -31,6 +31,7 @@ def load_data(classe):
 
     # Récupérer les valeurs entre parenthèses de la première ligne
     dates_row = [extract_date_from_cell(cell.value) for cell in sheet_colloscope[1]]
+    print(f"Dates extraites de la première ligne : {dates_row}")
 
     data_dict = {}
     data_dict1 = {}
@@ -186,28 +187,27 @@ def display_data():
 
     # Obtenir la date actuelle avec 3 jours ajoutés
     current_date = get_current_date()
+    st.write(f"Date actuelle (avec 3 jours ajoutés) : {current_date}")
 
     # Charger la dernière date mise à jour
     last_updated_date = load_last_updated_date()
+    st.write(f"Date de la dernière mise à jour : {last_updated_date}")
 
     # Mettre à jour si la date a changé
     if last_updated_date != current_date:
         save_current_date(current_date)
         st.write(f"La date actuelle a été mise à jour : {current_date}")
-        # Effectuer d'autres actions si nécessaire lors de la mise à jour
     else:
         st.write(f"La date actuelle est : {current_date}")
 
     # Comparer les dates de la première ligne avec la date actuelle
     matching_column = compare_dates_with_columns(dates_row, current_date)
+    st.write(f"Colonne correspondant à la date actuelle : {matching_column}")
 
     if matching_column:
-        st.write(f"La date actuelle correspond à la colonne : {matching_column}")
+        data = colo(groupe, semaine, data_dict, data_dict1, matching_column)
     else:
-        st.write("Aucune date ne correspond à la date actuelle.")
-        matching_column = None  # Si aucune colonne ne correspond, ne pas en utiliser
-
-    data = colo(groupe, semaine, data_dict, data_dict1, matching_column)
+        data = colo(groupe, semaine, data_dict, data_dict1, None)
 
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
@@ -229,7 +229,10 @@ def main():
     semaine = st.sidebar.text_input("Semaine", value=settings[1])
 
     if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'):
-        st.sidebar.markdown("En Construction", unsafe_allow_html=True)
+        st.sidebar.markdown(
+            'En Construction',
+            unsafe_allow_html=True
+        )
 
     st.sidebar.button("Afficher", on_click=display_data)
 
