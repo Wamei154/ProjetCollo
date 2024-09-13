@@ -181,7 +181,7 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write({dates_row[1]})
+    st.write(dates_row[1],current_date)
 
 
 def main():
