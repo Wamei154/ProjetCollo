@@ -66,6 +66,70 @@ def compare_dates_with_columns(dates_row, current_date):
     return None
 
 
+def colo(groupe, semaine, data_dict, data_dict1):
+    m = []
+
+    try:
+        # Vérification de la présence du groupe dans data_dict
+        if groupe not in data_dict:
+            raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
+
+        # Vérification que l'index de la semaine est valide
+        if semaine - 1 >= len(data_dict[groupe]) or semaine - 1 < 0:
+            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
+
+        # Accès aux données de la semaine spécifiée
+        s = data_dict[groupe][semaine - 1]
+
+        # Boucle pour assembler les éléments
+        for k in range(len(s)):
+            # Vérification de la clé dans data_dict1
+            if s[k] not in data_dict1:
+                raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
+
+            joined_elements = flatten_list(data_dict1[s[k]])
+            m.append(joined_elements)
+
+    except KeyError as e:
+        st.error(str(e))
+        return m
+
+    except IndexError as e:
+        st.error(str(e))
+        return m
+
+    except Exception as e:
+        st.error(f"Une erreur inattendue s'est produite : {str(e)}")
+        return m
+
+    return m
+
+
+def save_settings(groupe, semaine, classe):
+    with open('config.txt', 'w') as f:
+        f.write(f"{groupe}\n{semaine}\n{classe}")
+
+
+def load_settings():
+    groupe = "G10"
+    semaine = str(get_current_week())
+    classe = "1"  # Default class
+    if os.path.exists('config.txt'):
+        with open('config.txt', 'r') as f:
+            lines = f.readlines()
+            if len(lines) >= 3:
+                groupe = lines[0].strip()
+                semaine = lines[1].strip()
+                classe = lines[2].strip()
+    return groupe, semaine, classe
+
+
+def get_current_week():
+    now = datetime.now()
+    current_week = now.isocalendar()[1]
+    return min(current_week, 30)
+
+
 def display_data():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
@@ -112,20 +176,6 @@ def display_data():
     st.table(df.style.hide(axis='index'))
 
 
-def load_settings():
-    groupe = "G10"
-    semaine = str(get_current_week())
-    classe = "1"  # Default class
-    if os.path.exists('config.txt'):
-        with open('config.txt', 'r') as f:
-            lines = f.readlines()
-            if len(lines) >= 3:
-                groupe = lines[0].strip()
-                semaine = lines[1].strip()
-                classe = lines[2].strip()
-    return groupe, semaine, classe
-
-
 def main():
     st.sidebar.header("Sélection")
 
@@ -156,11 +206,6 @@ def main():
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe  
-
-
-if __name__ == "__main__":
-    main()
-
 
 
 if __name__ == "__main__":
