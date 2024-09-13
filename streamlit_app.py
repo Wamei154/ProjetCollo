@@ -2,9 +2,10 @@ import os
 import re
 import streamlit as st
 from openpyxl import load_workbook
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import pytz
+from dateutil.relativedelta import relativedelta
 
 
 def resource_path(relative_path):
@@ -166,7 +167,7 @@ def display_data():
 
     data_dict, data_dict1, dates_row = load_data(classe)
 
-    # Obtenir la date actuelle
+    # Obtenir la date actuelle avec 3 jours ajoutés
     current_date = get_current_date()
 
     # Comparer les dates de la première ligne avec la date actuelle
@@ -183,7 +184,6 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write(dates_row[1],current_date)
 
 
 def main():
