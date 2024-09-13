@@ -91,7 +91,7 @@ def display_data():
             st.error("La Semaine doit être entre 1 et 30.")
             return
     except ValueError:
-        st.error("Veuillez entrer un nombre valide entre 1 et 30. Les lettres ou autres caractères ne sont pas autorisés.")
+        st.error("Veuillez entrer une Semaine valide entre 1 et 30. Les lettres ou autres caractères ne sont pas nécessaires.")
         return
 
     try:
@@ -100,7 +100,7 @@ def display_data():
             st.error("Le Groupe doit être entre 1 et 20.")
             return
     except ValueError:
-        st.error("Veuillez entrer un Groupe valide entre 1 et 20. Les lettres ou autres caractères ne sont pas autorisés.")
+        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par "'G'" comme G10.")
         return
 
     data_dict, data_dict1 = load_data(classe)
