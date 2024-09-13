@@ -30,6 +30,9 @@ def load_data(classe):
     data_dict = {}
     data_dict1 = {}
 
+    # Récupération des dates dans la première ligne du colloscope
+    dates = [cell.value for cell in sheet_colloscope[1] if cell.value]
+
     for row in sheet_colloscope.iter_rows(min_row=2, values_only=True):
         key = row[0]
         values = row[1:]
@@ -42,7 +45,8 @@ def load_data(classe):
         values1 = [v.split() if v is not None else [] for v in values1]
         data_dict1[key1] = values1
 
-    return data_dict, data_dict1
+    return data_dict, data_dict1, dates
+
 
 
 def get_current_week():
@@ -114,37 +118,60 @@ def display_data():
     semaine = st.session_state.semaine
     classe = st.session_state.classe
 
-    save_settings(groupe, semaine, classe)  
+    save_settings(groupe, semaine, classe)
 
     try:
-        semaine = int(semaine)
+        data_dict, data_dict1, dates = load_data(classe)
+
+        # Extraction et comparaison des dates de la première ligne
+        semaine_actuelle = datetime.now().isocalendar()[1]
+        for date_str in dates:
+            if date_str and '(' in date_str:
+                date = extraire_date(date_str.split('(')[-1].split(')')[0])  # Extraction du texte entre parenthèses
+                if date:
+                    semaine_de_date = determiner_semaine(date)
+                    if semaine_de_date == semaine_actuelle:
+                        st.session_state.semaine = str(semaine_de_date)
+                        break
+
+        # Validation du numéro de semaine
+        semaine = int(st.session_state.semaine)
         if semaine < 1 or semaine > 30:
             st.error("La Semaine doit être entre 1 et 30.")
             return
+        
     except ValueError:
         st.error("Veuillez entrer une Semaine valide entre 1 et 30. Les lettres ou autres caractères ne sont pas nécessaires.")
         return
-
-    try:
-        group_number = int(groupe[1:])
-        if group_number < 0 or group_number > 20:
-            st.error("Le Groupe doit être entre 1 et 20.")
-            return
-    except ValueError:
-        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par "'G'" comme G10.")
+    except KeyError as e:
+        st.error(str(e))
         return
-
-    data_dict, data_dict1 = load_data(classe)
+    except Exception as e:
+        st.error(f"Une erreur inattendue s'est produite : {str(e)}")
+        return
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-   
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
 
-   
     st.table(df.style.hide(axis='index'))
-   
+    
+def extraire_date(text):
+    """Extrait la date du format (01/07) et retourne un objet datetime."""
+    try:
+        date_str = text.strip("()")  # Enlève les parenthèses
+        date_obj = datetime.strptime(date_str, "%d/%m")  # Convertit en objet datetime
+        date_obj = date_obj.replace(year=datetime.now().year)  # Ajoute l'année courante
+        return date_obj
+    except ValueError:
+        st.error(f"Date invalide dans le texte : {text}")
+        return None
+
+def determiner_semaine(date):
+    """Détermine la semaine ISO de la date fournie."""
+    return date.isocalendar()[1]
+
 # Main function
 def main():
     st.sidebar.header("Paramètres")
