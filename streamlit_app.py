@@ -61,10 +61,10 @@ def extract_date_from_cell(cell_value):
 
 
 def get_current_date():
-    """Get the current date in format %d/%m and add 3 days."""
+    """Get the current date in format %d/%m and add 2 days."""
     timezone = pytz.timezone('Europe/Paris')
     current_date = datetime.now(timezone)
-    new_date = current_date + timedelta(days=3)
+    new_date = current_date + timedelta(days=2)
     return new_date.strftime("%d/%m")
 
 
