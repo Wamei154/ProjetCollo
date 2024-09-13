@@ -145,6 +145,8 @@ def display_data():
     st.table(df.style.hide(axis='index'))
 
 def main():
+    df = pd.read_excel(colloscope_file)
+    
     st.sidebar.header("Sélection")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
@@ -161,6 +163,32 @@ def main():
     timezone = pytz.timezone("Europe/Paris")
     current_date = datetime.now(timezone).strftime("%d/%m")
     st.sidebar.write("Date : ", current_date)
+    first_row = df.iloc[0].values  # Cela renvoie les valeurs de la première ligne
+
+# Convertir les dates récupérées en chaîne de caractères pour comparaison (si elles sont au format date)
+# En supposant que les dates dans le fichier Excel soient au format `"%d/%m"`
+    matching_dates = []
+
+    for value in first_row:
+        try:
+        # Comparer chaque valeur avec la date actuelle
+            excel_date = pd.to_datetime(str(value), format="%d/%m", errors='coerce').strftime("%d/%m")
+            if excel_date == current_date:
+                matching_dates.append(excel_date)
+        except ValueError:
+        # Passer si la conversion échoue
+            continue
+
+# Afficher si des dates correspondent
+    if matching_dates:
+        st.write("Les dates suivantes correspondent à la date actuelle : ", matching_dates)
+    else:
+        st.write("Aucune date ne correspond à la date actuelle.")
+    
+
+
+
+    
     st.sidebar.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px;">
