@@ -151,7 +151,11 @@ def main():
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
-    st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing' )
+    if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing' ):
+        st.sidebar.markdown(
+            f'En Construction',
+            unsafe_allow_html=True
+        )
 
     st.sidebar.button("Afficher", on_click=display_data)
 
