@@ -3,6 +3,7 @@ import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
 import pandas as pd
+import time 
 
 
 def resource_path(relative_path):
@@ -142,6 +143,17 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
+
+    while True:
+    # Obtenir l'heure actuelle
+    current_time = datetime.now().strftime("%H:%M:%S")
+    
+    # Afficher l'heure actuelle
+    st.write("Heure actuelle : ", current_time)
+    
+    # Pause de 1 seconde avant de mettre à jour
+    time.sleep(1)
+    st.experimental_rerun()
 
 def main():
     st.sidebar.header("Sélection")
