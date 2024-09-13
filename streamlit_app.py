@@ -5,7 +5,6 @@ from openpyxl import load_workbook
 from datetime import datetime, timedelta
 import pandas as pd
 import pytz
-from dateutil.relativedelta import relativedelta
 
 
 def resource_path(relative_path):
@@ -64,7 +63,7 @@ def get_current_date():
     """Get the current date in format %d/%m and add 3 days."""
     timezone = pytz.timezone('Europe/Paris')
     current_date = datetime.now(timezone)
-    new_date = current_date + timedelta(days=2)
+    new_date = current_date + timedelta(days=3)
     return new_date.strftime("%d/%m")
 
 
@@ -90,7 +89,7 @@ def compare_dates_with_columns(dates_row, current_date):
     return None
 
 
-def colo(groupe, semaine, data_dict, data_dict1):
+def colo(groupe, semaine, data_dict, data_dict1, matching_column):
     m = []
 
     try:
@@ -104,6 +103,10 @@ def colo(groupe, semaine, data_dict, data_dict1):
 
         # Accès aux données de la semaine spécifiée
         s = data_dict[groupe][semaine - 1]
+
+        # Si une colonne correspond à la date actuelle, utiliser cette colonne
+        if matching_column:
+            s = data_dict[groupe][matching_column - 1]
 
         # Boucle pour assembler les éléments
         for k in range(len(s)):
@@ -202,14 +205,14 @@ def display_data():
         st.write(f"La date actuelle correspond à la colonne : {matching_column}")
     else:
         st.write("Aucune date ne correspond à la date actuelle.")
+        matching_column = None  # Si aucune colonne ne correspond, ne pas en utiliser
 
-    data = colo(groupe, semaine, data_dict, data_dict1)
+    data = colo(groupe, semaine, data_dict, data_dict1, matching_column)
 
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write(current_date,dates_row[1])
 
 
 def main():
@@ -241,7 +244,7 @@ def main():
 
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
-    st.session_state.classe = classe  
+    st.session_state.classe = classe
 
 
 if __name__ == "__main__":
