@@ -3,11 +3,11 @@ import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
 import pandas as pd
-import time 
 import pytz
 
+
 def resource_path(relative_path):
-    """ Return the absolute path to the resource """
+    """Return the absolute path to the resource."""
     base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
@@ -18,7 +18,7 @@ def flatten_list(nested_list):
 
 @st.cache_data
 def load_data(classe):
-    """ Load data from Excel files based on the selected class """
+    """Load data from Excel files based on the selected class."""
     colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
     legende_file = resource_path(f'Legende{classe}.xlsx')
 
@@ -27,6 +27,9 @@ def load_data(classe):
 
     sheet_colloscope = excel_colloscope.active
     sheet_legende = excel_legende.active
+
+    # Récupérer la première ligne des dates
+    dates_row = [cell.value for cell in sheet_colloscope[1]]
 
     data_dict = {}
     data_dict1 = {}
@@ -43,71 +46,24 @@ def load_data(classe):
         values1 = [v.split() if v is not None else [] for v in values1]
         data_dict1[key1] = values1
 
-    return data_dict, data_dict1
+    return data_dict, data_dict1, dates_row
 
 
-def get_current_week():
-    now = datetime.now()
-    current_week = now.isocalendar()[1]
-    return min(current_week, 30)
+def get_current_date():
+    """Get the current date in format %d/%m."""
+    timezone = pytz.timezone('Europe/Paris')
+    return datetime.now(timezone).strftime("%d/%m")
 
 
-def save_settings(groupe, semaine, classe):
-    with open('config.txt', 'w') as f:
-        f.write(f"{groupe}\n{semaine}\n{classe}")
-
-def load_settings():
-    groupe = "G10"
-    semaine = str(get_current_week())
-    classe = "1"  # Default class
-    if os.path.exists('config.txt'):
-        with open('config.txt', 'r') as f:
-            lines = f.readlines()
-            if len(lines) >= 3:
-                groupe = lines[0].strip()
-                semaine = lines[1].strip()
-                classe = lines[2].strip()
-    return groupe, semaine, classe
-
-
-def colo(groupe, semaine, data_dict, data_dict1):
-    m = []
-
-    try:
-        # Vérification de la présence du groupe dans data_dict
-        if groupe not in data_dict:
-            raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
-
-        # Vérification que l'index de la semaine est valide
-        if semaine - 1 >= len(data_dict[groupe]) or semaine - 1 < 0:
-            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
-
-        # Accès aux données de la semaine spécifiée
-        s = data_dict[groupe][semaine - 1]
-
-        # Boucle pour assembler les éléments
-        for k in range(len(s)):
-            # Vérification de la clé dans data_dict1
-            if s[k] not in data_dict1:
-                raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
-
-            joined_elements = flatten_list(data_dict1[s[k]])
-            m.append(joined_elements)
-
-    except KeyError as e:
-        st.error(str(e))
-        return m
-
-    except IndexError as e:
-        st.error(str(e))
-        return m
-
-    except Exception as e:
-        st.error(f"Une erreur inattendue s'est produite : {str(e)}")
-        return m
-
-    return m
-
+def compare_dates_with_columns(dates_row, current_date):
+    """Compare the dates from the first row with the current date."""
+    for idx, date in enumerate(dates_row[1:], start=1):  # Ignorer la colonne 0 (index)
+        if date:
+            # Extraire la date entre parenthèses, si présente
+            extracted_date = date[date.find("(")+1:date.find(")")] if '(' in date and ')' in date else date
+            if extracted_date == current_date:
+                return idx + 1  # Retourner le numéro de colonne correspondant (B = 2, C = 3, etc.)
+    return None
 
 
 def display_data():
@@ -132,10 +88,21 @@ def display_data():
             st.error("Le Groupe doit être entre 1 et 20.")
             return
     except ValueError:
-        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par "'G'" comme G10.")
+        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par 'G' comme G10.")
         return
 
-    data_dict, data_dict1 = load_data(classe)
+    data_dict, data_dict1, dates_row = load_data(classe)
+
+    # Obtenir la date actuelle
+    current_date = get_current_date()
+
+    # Comparer les dates de la première ligne avec la date actuelle
+    matching_column = compare_dates_with_columns(dates_row, current_date)
+
+    if matching_column:
+        st.write(f"La date actuelle correspond à la colonne : {matching_column}")
+    else:
+        st.write("Aucune date ne correspond à la date actuelle.")
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
@@ -144,56 +111,19 @@ def display_data():
 
     st.table(df.style.hide(axis='index'))
 
+
 def main():
-    classe = st.session_state.classe
-    colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
-    excel_colloscope = load_workbook(colloscope_file)
-    sheet_colloscope = excel_colloscope.active
-    
-    df = pd.read_excel(sheet_colloscope)
-    
     st.sidebar.header("Sélection")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
-    if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing' ):
-        st.sidebar.markdown(
-            f'En Construction',
-            unsafe_allow_html=True
-        )
+
+    if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'):
+        st.sidebar.markdown("En Construction", unsafe_allow_html=True)
 
     st.sidebar.button("Afficher", on_click=display_data)
 
-    timezone = pytz.timezone("Europe/Paris")
-    current_date = datetime.now(timezone).strftime("%d/%m")
-    st.sidebar.write("Date : ", current_date)
-    first_row = df.iloc[0].values  # Cela renvoie les valeurs de la première ligne
-
-# Convertir les dates récupérées en chaîne de caractères pour comparaison (si elles sont au format date)
-# En supposant que les dates dans le fichier Excel soient au format `"%d/%m"`
-    matching_dates = []
-
-    for value in first_row:
-        try:
-        # Comparer chaque valeur avec la date actuelle
-            excel_date = pd.to_datetime(str(value), format="%d/%m", errors='coerce').strftime("%d/%m")
-            if excel_date == current_date:
-                matching_dates.append(excel_date)
-        except ValueError:
-        # Passer si la conversion échoue
-            continue
-
-# Afficher si des dates correspondent
-    if matching_dates:
-        st.write("Les dates suivantes correspondent à la date actuelle : ", matching_dates)
-    else:
-        st.write("Aucune date ne correspond à la date actuelle.")
-    
-
-
-
-    
     st.sidebar.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px;">
@@ -202,9 +132,11 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe  
-    
+
+
 if __name__ == "__main__":
     main()
