@@ -85,9 +85,9 @@ def display_data():
 
     save_settings(groupe, semaine, classe)  
 
-    
-    try:
     semaine = int(semaine)
+    try:
+    
         if semaine < 1 or semaine > 30:
             semaine = st.session_state.semaine
     except ValueError:
