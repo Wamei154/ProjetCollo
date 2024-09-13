@@ -144,24 +144,12 @@ def display_data():
 
     st.table(df.style.hide(axis='index'))
 
-    # Fuseau horaire, par exemple "Europe/Paris"
-    timezone = pytz.timezone("Europe/Paris")
-
-    # Obtenir la date actuelle dans le fuseau horaire spécifié
-    current_date = datetime.now(timezone).strftime("%d-%m-%Y")
-
-    # Afficher la date actuelle
-    st.sidebar.write("Date actuelle : ", current_date)
-
-
 def main():
     st.sidebar.header("Sélection")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
-
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
-
     if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing' ):
         st.sidebar.markdown(
             f'En Construction',
@@ -170,6 +158,9 @@ def main():
 
     st.sidebar.button("Afficher", on_click=display_data)
 
+    timezone = pytz.timezone("Europe/Paris")
+    current_date = datetime.now(timezone).strftime("%d-%m-%Y")
+    st.sidebar.write("Date actuelle : ", current_date)
     st.sidebar.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px;">
