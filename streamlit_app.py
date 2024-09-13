@@ -61,10 +61,10 @@ def extract_date_from_cell(cell_value):
 
 
 def get_current_date():
-    """Get the current date in format %d/%m and add 2 days."""
+    """Get the current date in format %d/%m and add 3 days."""
     timezone = pytz.timezone('Europe/Paris')
     current_date = datetime.now(timezone)
-    new_date = current_date + timedelta(days=2)
+    new_date = current_date + timedelta(days=3)
     return new_date.strftime("%d/%m")
 
 
@@ -86,7 +86,7 @@ def compare_dates_with_columns(dates_row, current_date):
     """Compare the dates from the first row with the current date."""
     for idx, date in enumerate(dates_row[1:], start=1):  # Ignorer la colonne 0 (index)
         if date and date == current_date:
-            return idx + 1  # Retourner le numéro de colonne correspondant (B = 2, C = 3, etc.)
+            return idx  # Retourner le numéro de colonne correspondant (B = 1, C = 2, etc.)
     return None
 
 
@@ -106,7 +106,7 @@ def colo(groupe, semaine, data_dict, data_dict1, matching_column):
         s = data_dict[groupe][semaine - 1]
 
         # Si une colonne correspond à la date actuelle, utiliser cette colonne
-        if matching_column:
+        if matching_column is not None:
             s = data_dict[groupe][matching_column - 1]
 
         # Boucle pour assembler les éléments
@@ -204,6 +204,13 @@ def display_data():
     matching_column = compare_dates_with_columns(dates_row, current_date)
     st.write(f"Colonne correspondant à la date actuelle : {matching_column}")
 
+    # Mettre à jour le numéro de semaine si une colonne correspond
+    if matching_column is not None:
+        semaine = matching_column
+        st.session_state.semaine = str(semaine)
+        st.sidebar.text_input("Semaine", value=str(semaine))
+
+    # Utiliser la colonne correspondante si trouvée
     if matching_column:
         data = colo(groupe, semaine, data_dict, data_dict1, matching_column)
     else:
@@ -213,7 +220,6 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write(dates_row[1])
 
 
 def main():
