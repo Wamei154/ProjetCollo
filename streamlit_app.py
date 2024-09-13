@@ -88,24 +88,22 @@ def display_data():
     try:
         semaine = int(semaine)
         if semaine < 1 or semaine > 30:
-            st.error("Le nombre doit être entre 1 et 30.")
+            st.error("La Semaine doit être entre 1 et 30.")
             return
     except ValueError:
         st.error("Veuillez entrer un nombre valide entre 1 et 30. Les lettres ou autres caractères ne sont pas autorisés.")
         return
 
-
     try:
         group_number = int(groupe[1:])
-        if group_number > 100:
-            groupe = 'G100'
+        if group_number < 0 or group_number > 20:
+            st.error("Le Groupe doit être entre 1 et 20.")
+            return
     except ValueError:
-        groupe = 'G10'
+        st.error("Veuillez entrer un Groupe valide entre 1 et 20. Les lettres ou autres caractères ne sont pas autorisés.")
+        return
 
     data_dict, data_dict1 = load_data(classe)
-
-    if groupe not in data_dict:
-        groupe = 'G10'
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
