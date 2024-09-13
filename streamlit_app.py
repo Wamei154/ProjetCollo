@@ -159,7 +159,7 @@ def main():
     st.sidebar.button("Afficher", on_click=display_data)
 
     timezone = pytz.timezone("Europe/Paris")
-    current_date = datetime.now(timezone).strftime("%d-%m")
+    current_date = datetime.now(timezone).strftime("%d/%m")
     st.sidebar.write("Date actuelle : ", current_date)
     st.sidebar.markdown(
         """
