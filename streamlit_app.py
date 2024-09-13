@@ -148,6 +148,11 @@ def display_data():
     st.write("Heure actuelle : ", current_time)
 
 # Affichage initial
+def display_time():
+    current_time = datetime.now().strftime("%H:%M:%S")
+    st.write("Heure actuelle : ", current_time)
+
+# Affichage initial
 display_time()
 
 # Boucle pour mettre à jour l'heure chaque seconde
