@@ -87,10 +87,14 @@ def display_data():
 
     semaine = int(semaine)
     try:
+        semaine = int(semaine)
         if semaine < 1 or semaine > 30:
-            semaine = st.session_state.semaine
+            st.error("Le nombre doit être entre 1 et 30.")
+            return
     except ValueError:
         st.error("Veuillez entrer un nombre valide entre 1 et 30. Les lettres ou autres caractères ne sont pas autorisés.")
+        return
+
 
     try:
         group_number = int(groupe[1:])
