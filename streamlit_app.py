@@ -144,13 +144,14 @@ def display_data():
 
     st.table(df.style.hide(axis='index'))
 
+    # Fuseau horaire, par exemple "Europe/Paris"
     timezone = pytz.timezone("Europe/Paris")
 
-    # Obtenir l'heure actuelle dans le fuseau horaire spécifié
-    current_time = datetime.now(timezone).strftime("%H:%M:%S")
+    # Obtenir la date actuelle dans le fuseau horaire spécifié
+    current_date = datetime.now(timezone).strftime("%Y-%m-%d")
 
-    # Afficher l'heure actuelle
-    st.write("Heure actuelle : ", current_time)
+    # Afficher la date actuelle
+    st.write("Date actuelle : ", current_date)
 
 
 def main():
