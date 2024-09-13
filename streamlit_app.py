@@ -1,4 +1,5 @@
 import os
+import re
 import streamlit as st
 from openpyxl import load_workbook
 from datetime import datetime
@@ -28,7 +29,7 @@ def load_data(classe):
     sheet_colloscope = excel_colloscope.active
     sheet_legende = excel_legende.active
 
-    # Récupérer la première ligne des dates
+    # Récupérer les valeurs entre parenthèses de la première ligne
     dates_row = [extract_date_from_cell(cell.value) for cell in sheet_colloscope[1]]
 
     data_dict = {}
@@ -48,6 +49,7 @@ def load_data(classe):
 
     return data_dict, data_dict1, dates_row
 
+
 def extract_date_from_cell(cell_value):
     """Extract the date from a cell value if it's in parentheses."""
     if isinstance(cell_value, str):
@@ -55,6 +57,8 @@ def extract_date_from_cell(cell_value):
         if match:
             return match.group(1)
     return None
+
+
 def get_current_date():
     """Get the current date in format %d/%m."""
     timezone = pytz.timezone('Europe/Paris')
@@ -64,11 +68,8 @@ def get_current_date():
 def compare_dates_with_columns(dates_row, current_date):
     """Compare the dates from the first row with the current date."""
     for idx, date in enumerate(dates_row[1:], start=1):  # Ignorer la colonne 0 (index)
-        if date:
-            # Extraire la date entre parenthèses, si présente
-            extracted_date = date[date.find("(")+1:date.find(")")] if '(' in date and ')' in date else date
-            if extracted_date == current_date:
-                return idx + 1  # Retourner le numéro de colonne correspondant (B = 2, C = 3, etc.)
+        if date and date == current_date:
+            return idx + 1  # Retourner le numéro de colonne correspondant (B = 2, C = 3, etc.)
     return None
 
 
@@ -180,7 +181,6 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write({dates_row[1]})
 
 
 def main():
