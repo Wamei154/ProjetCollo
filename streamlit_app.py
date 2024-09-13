@@ -160,7 +160,7 @@ def main():
 
     timezone = pytz.timezone("Europe/Paris")
     current_date = datetime.now(timezone).strftime("%d/%m")
-    st.sidebar.write("Date actuelle : ", current_date)
+    st.sidebar.write("Date : ", current_date)
     st.sidebar.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px;">
