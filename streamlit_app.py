@@ -60,9 +60,11 @@ def extract_date_from_cell(cell_value):
 
 
 def get_current_date():
-    """Get the current date in format %d/%m."""
+    """Get the current date in format %d/%m and add 3 days."""
     timezone = pytz.timezone('Europe/Paris')
-    return datetime.now(timezone).strftime("%d/%m")
+    current_date = datetime.now(timezone)
+    new_date = current_date + timedelta(days=3)
+    return new_date.strftime("%d/%m")
 
 
 def compare_dates_with_columns(dates_row, current_date):
@@ -168,7 +170,7 @@ def display_data():
     current_date = get_current_date()
 
     # Comparer les dates de la première ligne avec la date actuelle
-    matching_column = compare_dates_with_columns(dates_row+3, current_date)
+    matching_column = compare_dates_with_columns(dates_row, current_date)
 
     if matching_column:
         st.write(f"La date actuelle correspond à la colonne : {matching_column}")
