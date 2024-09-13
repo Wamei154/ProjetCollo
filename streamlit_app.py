@@ -71,24 +71,40 @@ def load_settings():
 
 def colo(groupe, semaine, data_dict, data_dict1):
     m = []
-    # Vérification de la clé groupe
-    if groupe not in data_dict:
-        st.error(f"Le groupe '{groupe}' n'existe pas dans les données.")
+
+    try:
+        # Vérification de la présence du groupe dans data_dict
+        if groupe not in data_dict:
+            raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
+
+        # Vérification que l'index de la semaine est valide
+        if semaine - 1 >= len(data_dict[groupe]) or semaine - 1 < 0:
+            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
+
+        # Accès aux données de la semaine spécifiée
+        s = data_dict[groupe][semaine - 1]
+
+        # Boucle pour assembler les éléments
+        for k in range(len(s)):
+            # Vérification de la clé dans data_dict1
+            if s[k] not in data_dict1:
+                raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
+
+            joined_elements = flatten_list(data_dict1[s[k]])
+            m.append(joined_elements)
+
+    except KeyError as e:
+        st.error(str(e))
         return m
 
-    # Vérification de l'index semaine
-    if semaine - 1 >= len(data_dict[groupe]):
-        st.error(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
+    except IndexError as e:
+        st.error(str(e))
         return m
 
-    s = data_dict[groupe][semaine - 1]
-    for k in range(len(s)):
-        # Vérification des clés dans data_dict1
-        if s[k] not in data_dict1:
-            st.error(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
-            continue
-        joined_elements = flatten_list(data_dict1[s[k]])
-        m.append(joined_elements)
+    except Exception as e:
+        st.error(f"Une erreur inattendue s'est produite : {str(e)}")
+        return m
+
     return m
 
 
