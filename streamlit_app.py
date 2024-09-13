@@ -68,6 +68,20 @@ def get_current_date():
     return new_date.strftime("%d/%m")
 
 
+def load_last_updated_date():
+    """Load the last updated date from a file."""
+    if os.path.exists('last_updated.txt'):
+        with open('last_updated.txt', 'r') as f:
+            return f.read().strip()
+    return None
+
+
+def save_current_date(date):
+    """Save the current date to a file."""
+    with open('last_updated.txt', 'w') as f:
+        f.write(date)
+
+
 def compare_dates_with_columns(dates_row, current_date):
     """Compare the dates from the first row with the current date."""
     for idx, date in enumerate(dates_row[1:], start=1):  # Ignorer la colonne 0 (index)
@@ -170,6 +184,17 @@ def display_data():
     # Obtenir la date actuelle avec 3 jours ajoutés
     current_date = get_current_date()
 
+    # Charger la dernière date mise à jour
+    last_updated_date = load_last_updated_date()
+
+    # Mettre à jour si la date a changé
+    if last_updated_date != current_date:
+        save_current_date(current_date)
+        st.write(f"La date actuelle a été mise à jour : {current_date}")
+        # Effectuer d'autres actions si nécessaire lors de la mise à jour
+    else:
+        st.write(f"La date actuelle est : {current_date}")
+
     # Comparer les dates de la première ligne avec la date actuelle
     matching_column = compare_dates_with_columns(dates_row, current_date)
 
@@ -184,7 +209,6 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write(current_date, dates_row[1])
 
 
 def main():
