@@ -147,24 +147,6 @@ def display_data():
     current_time = datetime.now().strftime("%H:%M:%S")
     st.write("Heure actuelle : ", current_time)
 
-# Affichage initial
-def display_time():
-    current_time = datetime.now().strftime("%H:%M:%S")
-    st.write("Heure actuelle : ", current_time)
-
-# Affichage initial
-placeholder = st.empty()
-
-# Boucle pour mettre à jour l'heure toutes les secondes
-while True:
-    # Obtenir l'heure actuelle
-    current_time = datetime.now().strftime("%H:%M:%S")
-    
-    # Afficher l'heure actuelle dans l'espace réservé
-    placeholder.write(f"Heure actuelle : {current_time}")
-    
-    # Pause de 1 seconde avant de mettre à jour
-    time.sleep(1)
 
 def main():
     st.sidebar.header("Sélection")
