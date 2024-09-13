@@ -29,7 +29,7 @@ def load_data(classe):
     sheet_legende = excel_legende.active
 
     # Récupérer la première ligne des dates
-    dates_row = [cell.value for cell in sheet_colloscope[1]]
+    dates_row = [extract_date_from_cell(cell.value) for cell in sheet_colloscope[1]]
 
     data_dict = {}
     data_dict1 = {}
@@ -48,7 +48,13 @@ def load_data(classe):
 
     return data_dict, data_dict1, dates_row
 
-
+def extract_date_from_cell(cell_value):
+    """Extract the date from a cell value if it's in parentheses."""
+    if isinstance(cell_value, str):
+        match = re.search(r'\((\d{2}/\d{2})\)', cell_value)
+        if match:
+            return match.group(1)
+    return None
 def get_current_date():
     """Get the current date in format %d/%m."""
     timezone = pytz.timezone('Europe/Paris')
