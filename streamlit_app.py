@@ -144,7 +144,7 @@ def display_data():
 
     st.table(df.style.hide(axis='index'))
 
-def main():
+def main(classe):
     colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
     excel_colloscope = load_workbook(colloscope_file)
     sheet_colloscope = excel_colloscope.active
