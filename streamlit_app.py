@@ -168,7 +168,7 @@ def display_data():
     current_date = get_current_date()
 
     # Comparer les dates de la première ligne avec la date actuelle
-    matching_column = compare_dates_with_columns(dates_row, current_date)
+    matching_column = compare_dates_with_columns(dates_row+3, current_date)
 
     if matching_column:
         st.write(f"La date actuelle correspond à la colonne : {matching_column}")
