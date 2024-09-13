@@ -148,7 +148,7 @@ def display_data():
     timezone = pytz.timezone("Europe/Paris")
 
     # Obtenir la date actuelle dans le fuseau horaire spécifié
-    current_date = datetime.now(timezone).strftime("%Y-%m-%d")
+    current_date = datetime.now(timezone).strftime("%d-%m-%Y")
 
     # Afficher la date actuelle
     st.write("Date actuelle : ", current_date)
