@@ -209,6 +209,7 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
+    st.write(current_date,dates_row)
 
 
 def main():
