@@ -202,7 +202,7 @@ def display_data():
 
     # Mettre à jour le numéro de semaine dans la session et dans la barre latérale si une colonne correspond
     if matching_column is not None:
-        semaine = matching_column - 1  # Ajuster à 0-indexé pour la semaine
+        semaine = matching_column  # Ajuster à 0-indexé pour la semaine
         st.session_state.semaine = str(semaine)
         st.sidebar.text_input("Semaine", value=str(semaine))
 
