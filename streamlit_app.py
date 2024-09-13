@@ -85,7 +85,6 @@ def display_data():
 
     save_settings(groupe, semaine, classe)  
 
-    semaine = int(semaine)
     try:
         semaine = int(semaine)
         if semaine < 1 or semaine > 30:
