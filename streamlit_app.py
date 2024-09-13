@@ -152,7 +152,7 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
+    df = pd.DataFrame(data, columns=["Matière","Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
@@ -174,7 +174,7 @@ def determiner_semaine(date):
 
 # Main function
 def main():
-    st.sidebar.header("Paramètres")
+    st.sidebar.header("Sélection")
 
     
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
@@ -198,7 +198,7 @@ def main():
     )
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
-    st.session_state.classe = classe  # Store the class in session state
+    st.session_state.classe = classe  
 
 if __name__ == "__main__":
     main()
