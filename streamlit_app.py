@@ -61,10 +61,10 @@ def extract_date_from_cell(cell_value):
 
 
 def get_current_date():
-    """Get the current date in format %d/%m and add 2 days."""
+    """Get the current date in format %d/%m and add 3 days."""
     timezone = pytz.timezone('Europe/Paris')
     current_date = datetime.now(timezone)
-    new_date = current_date + timedelta(days=2)
+    new_date = current_date + timedelta(days=3)
     return new_date.strftime("%d/%m")
 
 
@@ -90,7 +90,7 @@ def compare_dates_with_columns(dates_row, current_date):
     return None
 
 
-def colo(groupe, semaine, data_dict, data_dict1, matching_column):
+def colo(groupe, semaine, data_dict, data_dict1):
     m = []
 
     try:
@@ -104,10 +104,6 @@ def colo(groupe, semaine, data_dict, data_dict1, matching_column):
 
         # Accès aux données de la semaine spécifiée
         s = data_dict[groupe][semaine - 1]
-
-        # Si une colonne correspond à la date actuelle, utiliser cette colonne
-        if matching_column is not None:
-            s = data_dict[groupe][matching_column - 1]
 
         # Boucle pour assembler les éléments
         for k in range(len(s)):
@@ -204,23 +200,19 @@ def display_data():
     matching_column = compare_dates_with_columns(dates_row, current_date)
     st.write(f"Colonne correspondant à la date actuelle : {matching_column}")
 
-    # Mettre à jour le numéro de semaine si une colonne correspond
+    # Mettre à jour le numéro de semaine dans la session et dans la barre latérale si une colonne correspond
     if matching_column is not None:
-        semaine = matching_column
+        semaine = matching_column - 1  # Ajuster à 0-indexé pour la semaine
         st.session_state.semaine = str(semaine)
         st.sidebar.text_input("Semaine", value=str(semaine))
 
-    # Utiliser la colonne correspondante si trouvée
-    if matching_column:
-        data = colo(groupe, semaine, data_dict, data_dict1, matching_column)
-    else:
-        data = colo(groupe, semaine, data_dict, data_dict1, None)
+    # Utiliser la semaine mise à jour
+    data = colo(groupe, semaine, data_dict, data_dict1)
 
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-    st.write(dates_row[1])
 
 
 def main():
