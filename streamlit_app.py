@@ -205,8 +205,8 @@ def main():
         """,
         unsafe_allow_html=True
     )
-    contenu_message = st.sidebar.button("?"):
-        st.text_area("Entrez votre message ici")
+    if st.sidebar.button("?"):
+        contenu_message = st.text_area("Entrez votre message ici")
 
     # Bouton d'envoi
     if st.sidebar.button("Envoyer"):
