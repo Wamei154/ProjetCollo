@@ -17,9 +17,7 @@ Les bibliothèques nécessaires sont les suivantes :
 - `streamlit`
 - `openpyxl`
 - `pandas`
-- `smtplib` (pour les notifications par e-mail si besoin)
-- `email` (pour la gestion des emails)
-- `pytz` (pour la gestion des fuseaux horaires)
+
 
 Ces bibliothèques peuvent être installées en exécutant :
 
