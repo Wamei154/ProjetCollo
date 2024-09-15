@@ -190,7 +190,7 @@ def main():
             unsafe_allow_html=True
         )
 
-    if st.sidebar.button("Afficher", on_click=display_data):
+    with st.sidebar.button("Afficher", on_click=display_data):
         
         with st.popover('Bug?'):
             with st.form("chat_form"):
