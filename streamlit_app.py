@@ -178,14 +178,7 @@ def envoyer_email(contenu_message):
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
 
 # Zone de texte pour le chat
-contenu_message = st.sidebar.text_area("Entrez votre message ici")
 
-# Bouton d'envoi
-if st.sidebar.button("Envoyer"):
-    if contenu_message:
-        envoyer_email(contenu_message)
-    else:
-        st.sidebar.warning("Veuillez entrer un message avant d'envoyer.")
 
 
 
@@ -212,6 +205,15 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    contenu_message = st.sidebar.text_area("Entrez votre message ici")
+
+    # Bouton d'envoi
+    if st.sidebar.button("Envoyer"):
+        if contenu_message:
+            envoyer_email(contenu_message)
+    else:
+        st.sidebar.warning("Veuillez entrer un message avant d'envoyer.")
+        
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe  
