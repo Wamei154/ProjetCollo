@@ -5,6 +5,8 @@ from datetime import datetime
 import pandas as pd
 import time 
 import pytz
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 def resource_path(relative_path):
     """ Return the absolute path to the resource """
@@ -143,6 +145,51 @@ def display_data():
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
+
+
+
+# Fonction pour envoyer un e-mail
+def envoyer_email(contenu_message):
+    try:
+        # Configuration de l'e-mail
+        email = "votre_email@gmail.com"
+        mot_de_passe = "votre_mot_de_passe"  # utilisez un mot de passe d'application ou OAuth
+        destinataire = "destinataire@gmail.com"
+        sujet = "Nouvelle notification de chat"
+        message = f"Vous avez un nouveau message :\n\n{contenu_message}"
+
+        # Création du message
+        msg = MIMEMultipart()
+        msg['From'] = email
+        msg['To'] = destinataire
+        msg['Subject'] = sujet
+        msg.attach(MIMEText(message, 'plain'))
+
+        # Envoi de l'e-mail
+        serveur = smtplib.SMTP('smtp.gmail.com', 587)
+        serveur.starttls()
+        serveur.login(email, mot_de_passe)
+        texte = msg.as_string()
+        serveur.sendmail(email, destinataire, texte)
+        serveur.quit()
+        st.success("E-mail envoyé avec succès !")
+    except Exception as e:
+        st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
+
+# Interface utilisateur avec Streamlit
+st.title("Chat Box avec Notification par Mail")
+
+# Zone de texte pour le chat
+contenu_message = st.text_area("Entrez votre message ici")
+
+# Bouton d'envoi
+if st.button("Envoyer"):
+    if contenu_message:
+        envoyer_email(contenu_message)
+    else:
+        st.warning("Veuillez entrer un message avant d'envoyer.")
+
+
 
 def main():
     st.sidebar.header("Sélection")
