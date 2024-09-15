@@ -161,7 +161,7 @@ def main():
     
     st.markdown(
         """
-        <div style="position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px;">
+        <div style="position: fixed; bottom: 100; width: 100%; text-align: center; font-size: 10px;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
