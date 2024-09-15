@@ -201,7 +201,7 @@ def main():
         unsafe_allow_html=True
     )
 
-    with st.popover('Erreur?'):
+    with st.popover('Bug?'):
         with st.form("chat_form"):
             contenu_message = st.text_area("Entrez votre message ici")
             submit = st.form_submit_button("Envoyer")
