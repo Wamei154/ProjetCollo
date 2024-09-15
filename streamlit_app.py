@@ -201,7 +201,7 @@ def main():
         unsafe_allow_html=True
     )
 
-    if st.bouton("?"):
+    if st.button("?"):
         with st.form("chat_form"):
             contenu_message = st.text_area("Entrez votre message ici")
             submit = st.form_submit_button("Envoyer")
