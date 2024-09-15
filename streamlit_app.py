@@ -154,7 +154,7 @@ def envoyer_email(contenu_message):
     try:
         # Configuration de l'e-mail
         email = "collochat@gmail.com"
-        mot_de_passe = "*6@GMxn8"  # utilisez un mot de passe d'application ou OAuth
+        mot_de_passe = "ffzv grdy mkjt mbyh"  # utilisez un mot de passe d'application ou OAuth
         destinataire = "mael@blimast.fr"
         sujet = "Nouvelle notification de chat"
         message = f"Vous avez un nouveau message :\n\n{contenu_message}"
