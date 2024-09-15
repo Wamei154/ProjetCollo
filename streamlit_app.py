@@ -6,7 +6,6 @@ import pandas as pd
 import time 
 import pytz
 import smtplib
-from streamlit_keypress import keypress
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
