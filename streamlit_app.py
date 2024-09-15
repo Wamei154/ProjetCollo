@@ -97,7 +97,15 @@ def colo(groupe, semaine, data_dict, data_dict1):
             if 'M' in joined_elements:
                 matiere = "Mathématiques"  # You can change this to the subject you want
             elif 'A' in joined_elements:
-                matiere = "Anglais"  # Example: A could stand for English (Anglais)
+                matiere = "Anglais"
+            elif 'F' in joined_elements:
+                matiere = "Français"
+            elif 'SI' in joined_elements:
+                matiere = "Science Industriel"
+            elif 'P' in joined_elements:
+                matiere = "Physique"
+            elif 'I' in joined_elements:
+                matiere = "Info"
             else:
                 matiere = "Non spécifié"
 
