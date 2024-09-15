@@ -149,33 +149,6 @@ def display_data():
 
 
 
-# Fonction pour envoyer un e-mail
-def envoyer_email(contenu_message):
-    try:
-        # Configuration de l'e-mail
-        email = "collochat@gmail.com"
-        mot_de_passe = "ffzv grdy mkjt mbyh"  # utilisez un mot de passe d'application ou OAuth
-        destinataire = "mael@blimast.fr"
-        sujet = "Nouvelle notification de chat"
-        message = f"Vous avez un nouveau message :\n\n{contenu_message}"
-
-        # Création du message
-        msg = MIMEMultipart()
-        msg['From'] = email
-        msg['To'] = destinataire
-        msg['Subject'] = sujet
-        msg.attach(MIMEText(message, 'plain'))
-
-        # Envoi de l'e-mail
-        serveur = smtplib.SMTP('smtp.gmail.com', 587)
-        serveur.starttls()
-        serveur.login(email, mot_de_passe)
-        texte = msg.as_string()
-        serveur.sendmail(email, destinataire, texte)
-        serveur.quit()
-        st.success("E-mail envoyé avec succès !")
-    except Exception as e:
-        st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
 
 def main():
     st.sidebar.header("Sélection")
@@ -190,19 +163,7 @@ def main():
             unsafe_allow_html=True
         )
 
-    if st.sidebar.button("Afficher", on_click=display_data):
-        
-        with st.popover('Bug?'):
-            with st.form("chat_form"):
-                contenu_message = st.text_area("Entrez votre message ici")
-                submit = st.form_submit_button("Envoyer")
-                if submit:
-                    if contenu_message:
-                        envoyer_email(contenu_message)
-                    else:
-                        st.warning("Veuillez entrer un message avant d'envoyer.")
-        
-    
+    st.button("Afficher", on_click=display_data)
     st.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px;">
