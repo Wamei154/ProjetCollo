@@ -193,9 +193,8 @@ def main():
     with st.sidebar.button("Afficher", on_click=display_data):
         
         with st.popover('Bug?'):
-            with st.form("chat_form"):
-                contenu_message = st.text_area("Entrez votre message ici")
-                submit = st.form_submit_button("Envoyer")
+            contenu_message = st.text_area("Entrez votre message ici")
+            submit = st.form_submit_button("Envoyer")
             if submit:
                 if contenu_message:
                     envoyer_email(contenu_message)
