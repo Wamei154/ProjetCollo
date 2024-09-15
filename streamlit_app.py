@@ -90,26 +90,21 @@ def colo(groupe, semaine, data_dict, data_dict1):
             if s[k] not in data_dict1:
                 raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
 
-            # Assemble the row and check for specific values like 'M' or 'A'
+            # Assemble the row
             joined_elements = flatten_list(data_dict1[s[k]])
-            
-            # Add logic to handle 'M' (Matière) or 'A' (Autre)
-            if 'M' in joined_elements:
-                matiere = "Mathématiques"  # You can change this to the subject you want
-            elif 'A' in joined_elements:
-                matiere = "Anglais"
-            elif 'F' in joined_elements:
-                matiere = "Français"
-            elif 'SI' in joined_elements:
-                matiere = "Science Industriel"
-            elif 'P' in joined_elements:
-                matiere = "Physique"
-            elif 'I' in joined_elements:
-                matiere = "Info"
-            else:
-                matiere = "Non spécifié"
 
-            # Add the Matière column
+            # Handle specific letters to assign subjects (Matière)
+            matiere = "Non spécifié"  # Default value
+
+            if s[k].startswith('M'):
+                matiere = "Mathématiques"
+            elif s[k].startswith('A'):
+                matiere = "Anglais"
+            elif s[k].startswith('SI'):
+                matiere = "Sciences de l'Ingénieur"
+            # Add more conditions for other subjects as needed
+
+            # Add the Matière column to the row
             joined_elements.append(matiere)
             m.append(joined_elements)
 
