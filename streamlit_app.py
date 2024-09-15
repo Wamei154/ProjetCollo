@@ -163,7 +163,7 @@ def main():
             unsafe_allow_html=True
         )
 
-    st.button("Afficher", on_click=display_data)
+    st.sidebar.button("Afficher", on_click=display_data)
     st.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px;">
