@@ -1,13 +1,7 @@
 import os
 import streamlit as st
 from openpyxl import load_workbook
-from datetime import datetime
 import pandas as pd
-import time 
-import pytz
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 def resource_path(relative_path):
     """ Return the absolute path to the resource """
