@@ -152,9 +152,9 @@ def display_data():
 def envoyer_email(contenu_message):
     try:
         # Configuration de l'e-mail
-        email = "votre_email@gmail.com"
-        mot_de_passe = "votre_mot_de_passe"  # utilisez un mot de passe d'application ou OAuth
-        destinataire = "destinataire@gmail.com"
+        email = "collochat@gmail.com"
+        mot_de_passe = "*6@GMxn8"  # utilisez un mot de passe d'application ou OAuth
+        destinataire = "mael@blimast.fr"
         sujet = "Nouvelle notification de chat"
         message = f"Vous avez un nouveau message :\n\n{contenu_message}"
 
@@ -176,18 +176,15 @@ def envoyer_email(contenu_message):
     except Exception as e:
         st.error(f"Erreur lors de l'envoi de l'e-mail : {e}")
 
-# Interface utilisateur avec Streamlit
-st.title("Chat Box avec Notification par Mail")
-
 # Zone de texte pour le chat
-contenu_message = st.text_area("Entrez votre message ici")
+contenu_message = st.sidebar.text_area("Entrez votre message ici")
 
 # Bouton d'envoi
-if st.button("Envoyer"):
+if st.sidebar.button("Envoyer"):
     if contenu_message:
         envoyer_email(contenu_message)
     else:
-        st.warning("Veuillez entrer un message avant d'envoyer.")
+        st.sidebar.warning("Veuillez entrer un message avant d'envoyer.")
 
 
 
