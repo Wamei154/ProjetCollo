@@ -200,13 +200,13 @@ def main():
         """,
         unsafe_allow_html=True
     )
-    if st.sidebar.button("?"):
-        contenu_message = st.sidebar.text_area("Entrez votre message ici")
-        if st.sidebar.button("Envoyer"):
+    if st.button("?"):
+        contenu_message = st.text_area("Entrez votre message ici")
+        if st.button("Envoyer"):
             if contenu_message:
                 envoyer_email(contenu_message)
             else:
-                st.sidebar.warning("Veuillez entrer un message avant d'envoyer.")
+                st.warning("Veuillez entrer un message avant d'envoyer.")
         
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
