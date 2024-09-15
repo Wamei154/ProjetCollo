@@ -90,7 +90,19 @@ def colo(groupe, semaine, data_dict, data_dict1):
             if s[k] not in data_dict1:
                 raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
 
+            # Assemble the row and check for specific values like 'M' or 'A'
             joined_elements = flatten_list(data_dict1[s[k]])
+            
+            # Add logic to handle 'M' (Matière) or 'A' (Autre)
+            if 'M' in joined_elements:
+                matiere = "Mathématiques"  # You can change this to the subject you want
+            elif 'A' in joined_elements:
+                matiere = "Anglais"  # Example: A could stand for English (Anglais)
+            else:
+                matiere = "Non spécifié"
+
+            # Add the Matière column
+            joined_elements.append(matiere)
             m.append(joined_elements)
 
     except KeyError as e:
@@ -106,6 +118,7 @@ def colo(groupe, semaine, data_dict, data_dict1):
         return m
 
     return m
+
 
 
 
@@ -131,14 +144,15 @@ def display_data():
             st.error("Le Groupe doit être entre 1 et 20.")
             return
     except ValueError:
-        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par "'G'" comme G10.")
+        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par 'G' comme G10.")
         return
 
     data_dict, data_dict1 = load_data(classe)
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle"])
+    # Updated columns to include the Matière
+    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
