@@ -102,6 +102,12 @@ def colo(groupe, semaine, data_dict, data_dict1):
                 matiere = "Anglais"
             elif s[k].startswith('SI'):
                 matiere = "Sciences de l'Ingénieur"
+            elif s[k].startswith('F'):
+                matiere = "Français"
+            elif s[k].startswith('I'):
+                matiere = "Informatique"
+            elif s[k].startswith('P'):
+                matiere = "Physique"
             # Add more conditions for other subjects as needed
 
             # Add the Matière column to the row
