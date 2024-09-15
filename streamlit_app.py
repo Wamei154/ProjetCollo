@@ -6,6 +6,7 @@ import pandas as pd
 import time 
 import pytz
 import smtplib
+from streamlit_keypress import keypress
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -201,8 +202,9 @@ def main():
         unsafe_allow_html=True
     )
     if st.button("?"):
+        key = keypress()
         contenu_message = st.text_area("Entrez votre message ici")
-        if st.button("Envoyer"):
+        if key == "Enter":  # Si la touche "Entrée" est appuyée
             if contenu_message:
                 envoyer_email(contenu_message)
             else:
