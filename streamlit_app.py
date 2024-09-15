@@ -190,7 +190,18 @@ def main():
             unsafe_allow_html=True
         )
 
-    st.sidebar.button("Afficher", on_click=display_data)
+    if st.sidebar.button("Afficher", on_click=display_data):
+        
+        with st.popover('Bug?'):
+            with st.form("chat_form"):
+                contenu_message = st.text_area("Entrez votre message ici")
+                submit = st.form_submit_button("Envoyer")
+            if submit:
+                if contenu_message:
+                    envoyer_email(contenu_message)
+                else:
+                    st.warning("Veuillez entrer un message avant d'envoyer.")
+        
     
     st.markdown(
         """
@@ -201,15 +212,7 @@ def main():
         unsafe_allow_html=True
     )
 
-    with st.popover('Bug?'):
-        with st.form("chat_form"):
-            contenu_message = st.text_area("Entrez votre message ici")
-            submit = st.form_submit_button("Envoyer")
-        if submit:
-            if contenu_message:
-                envoyer_email(contenu_message)
-            else:
-                st.warning("Veuillez entrer un message avant d'envoyer.")
+    
         
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
