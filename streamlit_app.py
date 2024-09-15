@@ -190,7 +190,7 @@ def main():
             unsafe_allow_html=True
         )
 
-    with st.sidebar.button("Afficher", on_click=display_data):
+    if st.sidebar.button("Afficher", on_click=display_data):
         
         with st.popover('Bug?'):
             contenu_message = st.text_area("Entrez votre message ici")
