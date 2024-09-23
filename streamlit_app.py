@@ -170,7 +170,7 @@ def display_data():
 
 
 def main():
-    st.image("EPS.pdf", caption="EDT EPS")
+    
 
     st.sidebar.header("Sélection")
     
