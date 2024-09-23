@@ -170,6 +170,8 @@ def display_data():
 
 
 def main():
+    st.image("EPS.pdf", caption="EDT EPS")
+
     st.sidebar.header("Sélection")
     
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
