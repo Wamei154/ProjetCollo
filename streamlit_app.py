@@ -170,7 +170,8 @@ def display_data():
 
 
 def main():
-    st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
+    if st.sidebar.button('EDT EPS'):
+        st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
 
 
     st.sidebar.header("Sélection")
