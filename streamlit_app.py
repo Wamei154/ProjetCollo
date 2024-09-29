@@ -188,12 +188,7 @@ def main():
         )
 
     if st.sidebar.button("Afficher", on_click=display_data):
-        st.sidebar.markdown("""
-        <div style="width: 100%; font-size: 10px;">
-            Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur
-        </div>
-        """,
-        unsafe_allow_html=True)
+        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="ℹ️")
     st.markdown(
         """
         <div style="position: fixed; center: 0; width: 100%; font-size: 10px;">
