@@ -193,9 +193,7 @@ def main():
             Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur
         </div>
         """,
-        unsafe_allow_html=True
-    )
-        
+        unsafe_allow_html=True)
     st.markdown(
         """
         <div style="position: fixed; center: 0; width: 100%; font-size: 10px;">
@@ -204,6 +202,11 @@ def main():
         """,
         unsafe_allow_html=True
     )
+                    
+    
+    
+        
+    
     
 
     
