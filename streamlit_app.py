@@ -187,7 +187,9 @@ def main():
             unsafe_allow_html=True
         )
 
-    st.sidebar.button("Afficher", on_click=display_data)
+    if st.sidebar.button("Afficher", on_click=display_data):
+        st.markdown("Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur")
+        
     st.markdown(
         """
         <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px;">
@@ -196,7 +198,7 @@ def main():
         """,
         unsafe_allow_html=True
     )
-    st.markdown("Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur")
+    
 
     
         
