@@ -196,6 +196,7 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    st.markdown("Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur")
 
     
         
