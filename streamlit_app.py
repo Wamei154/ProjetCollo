@@ -188,7 +188,11 @@ def main():
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value="G1")
-    semaine = st.sidebar.text_input("Semaine", options=["S1 (16/09)", "S2 (23/09)", "S3 (30/09)", "S4 (07/10)", "S5 (14/10)", "S6 (04/11)", "S7 (11/11)", "S8 (18/11)", "9", "10", "11", "12", "13, "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", ], index=0)
+    semaine = st.sidebar.text_input("Semaine", options=["S1 (16/09)", "S2 (23/09)", "S3 (30/09)", "S4 (07/10)",
+                                                        "S5 (14/10)", "S6 (04/11)", "S7 (11/11)", "S8 (18/11)", 
+                                                        "9", "10", "11", "12", "13", "14", "15", "16", "17", "18",
+                                                        "19", "20", "21", "22", "23", "24", "25", "26", "27", "28",
+                                                        "29", "30"], index=0)
 
     if st.sidebar.button("Afficher"):
         st.session_state.groupe = groupe
