@@ -3,7 +3,7 @@ import streamlit as st
 from openpyxl import load_workbook
 import pandas as pd
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def resource_path(relative_path):
     """ Retourne le chemin absolu vers la ressource """
@@ -50,6 +50,13 @@ def get_current_week():
     now = datetime.now()
     current_week = now.isocalendar()[1]
     return min(current_week, 30)
+
+
+def get_start_of_week(year, week):
+    """ Retourne la date du début de la semaine (lundi) pour une semaine donnée """
+    d = f'{year}-W{week}-1'  # 'W' et '1' pour lundi
+    start_date = datetime.strptime(d + '-1', "%Y-W%U-%w")
+    return start_date.date()
 
 
 def save_settings(groupe, semaine, classe):
@@ -191,10 +198,16 @@ def main():
     weeks_passed = get_weeks_passed(start_date, current_date)
 
     # Afficher le nombre de semaines passées dans la barre latérale
-    st.sidebar.write(f"**Semaines** : {weeks_passed}, {current_date}")
+    st.sidebar.write(f"**Semaines passées** : {weeks_passed} semaines")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
+
+    # Afficher la date de début de la semaine sélectionnée
+    selected_week = int(load_settings()[1])
+    start_of_week = get_start_of_week(current_date.year, selected_week)
+    st.sidebar.write(f"Début de la semaine {selected_week}: {start_of_week.strftime('%d/%m/%Y')}")
+
     semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(load_settings()[1])-1)  # Selection de la semaine avec Selectbox
     
     if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'):
@@ -209,15 +222,4 @@ def main():
     st.markdown(
         """
         <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
-            Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-   
-    st.session_state.groupe = groupe
-    st.session_state.semaine = semaine
-    st.session_state.classe = classe  
-
-if __name__ == "__main__":
-    main()
+            Fait par BERRY Mael, avec l'aide de SOUVELAIN G
