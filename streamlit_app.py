@@ -44,6 +44,26 @@ def load_data(classe):
 
     return data_dict, data_dict1
 
+def get_start_of_week(date):
+    # Trouve le premier jour de la semaine (lundi)
+    start_of_week = date - timedelta(days=date.weekday())
+    return start_of_week.strftime("%d/%m")  # Format JJ/MM/AAAA
+
+# Définir les bornes de date
+start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
+end_date = datetime.strptime("22/11", "%d/%m").replace(year=datetime.now().year)
+
+# Date actuelle
+current_date = datetime.now()
+
+st.title("Colloscope - Date calculée")
+
+# Vérification si la date actuelle est entre les bornes
+if start_date <= current_date <= end_date:
+    first_day_of_week = get_start_of_week(current_date)
+    st.write(f"**Date du premier jour de la semaine :** {first_day_of_week}")
+else:
+    st.write(f"**La date actuelle ({current_date.strftime('%d/%m')}) n'est pas dans l'intervalle défini.**")
 
 def get_current_week():
     now = datetime.now()
