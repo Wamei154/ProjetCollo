@@ -126,52 +126,11 @@ def colo(groupe, semaine, data_dict, data_dict1):
     return m
 
 
-def display_data():
-    groupe = st.session_state.groupe
-    semaine = st.session_state.semaine
-    classe = st.session_state.classe
-
-    save_settings(groupe, semaine, classe)
-
-    try:
-        semaine = int(semaine)
-        if semaine < 1 or semaine > 30:
-            st.error("La Semaine doit être entre 1 et 30.")
-            return
-    except ValueError:
-        st.error("Veuillez entrer une Semaine valide entre 1 et 30.")
-        return
-
-    try:
-        group_number = int(groupe[1:])
-        if group_number < 0 or group_number > 20:
-            st.error("Le Groupe doit être entre 1 et 20.")
-            return
-    except ValueError:
-        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et commencer par 'G'.")
-        return
-
-    data_dict, data_dict1 = load_data(classe)
-
-    data = colo(groupe, semaine, data_dict, data_dict1)
-
-    df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
-    df.index = ['' for i in range(len(df))]
-
-    st.table(df.style.hide(axis='index'))
-
-
-def get_week_dates(start_date, current_date):
-    """
-    Calcule les dates de début de la semaine actuelle et de la semaine suivante.
-    :param start_date: Date de début de la première semaine (datetime).
-    :param current_date: Date actuelle (datetime).
-    :return: Tuple contenant les dates de début des semaines actuelle et suivante.
-    """
-    while current_date > start_date + timedelta(days=6):
-        start_date += timedelta(days=7)
-    next_week_start = start_date + timedelta(days=7)
-    return start_date, next_week_start
+def get_weeks_passed(start_date, current_date):
+    """Calcule le nombre de semaines passées depuis la date de début"""
+    delta = current_date - start_date
+    weeks_passed = delta.days // 7
+    return weeks_passed
 
 
 def main():
@@ -185,16 +144,11 @@ def main():
     start_date = datetime.strptime("16/09/2024", "%d/%m/%Y")
     current_date = datetime.now()
 
-    # Calculer les semaines actuelle et suivante
-    current_week_start, next_week_start = get_week_dates(start_date, current_date)
+    # Calculer le nombre de semaines passées depuis le début de l'année
+    weeks_passed = get_weeks_passed(start_date, current_date)
 
-    # Formater les dates des semaines
-    current_week_str = current_week_start.strftime("%d/%m")
-    next_week_str = next_week_start.strftime("%d/%m")
-
-    # Afficher les informations sur les semaines
-    st.sidebar.write(f"**Semaine actuelle** : {current_week_str}")
-    st.sidebar.write(f"**Semaine suivante** : {next_week_str}")
+    # Afficher le nombre de semaines passées dans la barre latérale
+    st.sidebar.write(f"**Semaines passées** : {weeks_passed} semaines")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
