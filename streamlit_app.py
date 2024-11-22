@@ -120,10 +120,15 @@ def colo(groupe, semaine, data_dict, data_dict1):
     return m
 
 
-def get_start_of_week(date):
-    """ Retourne le premier jour de la semaine (lundi) """
-    start_of_week = date - timedelta(days=date.weekday())
-    return start_of_week.strftime("%d/%m/%Y")  # Format JJ/MM/AAAA
+def get_week_start_date(start_date, current_date):
+    """
+    Calcule le premier jour de la semaine courante ou suivante.
+    Si la date actuelle n'est pas dans un intervalle d'une semaine, elle passe à la semaine suivante.
+    """
+    while current_date > start_date + timedelta(days=6):  # Si hors intervalle de la semaine actuelle
+        start_date += timedelta(days=7)  # Passer à la semaine suivante
+    return start_date.strftime("%d/%m/%Y")  # Format JJ/MM/AAAA
+
 
 
 def display_data():
@@ -173,10 +178,14 @@ def main():
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
     # Ajout de l'affichage du premier jour de la semaine
-    st.sidebar.subheader("Date calculée")
-    start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
-    end_date = datetime.strptime("23/11", "%d/%m").replace(year=datetime.now().year)
-    current_date = datetime.now()
+        # Configuration de la date de début et de la date actuelle
+    start_date = datetime.strptime("16/09/2024", "%d/%m/%Y")  # Début de la première semaine
+    current_date = datetime.now()  # Date actuelle
+
+    # Calcul de la semaine courante ou suivante
+    first_day_of_week = get_week_start_date(start_date, current_date)
+    st.sidebar.write(f"Premier jour de la semaine : {first_day_of_week}")
+
 
     if start_date <= current_date <= end_date:
         first_day_of_week = get_start_of_week(current_date)
