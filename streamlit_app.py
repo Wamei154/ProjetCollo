@@ -190,7 +190,7 @@ def main():
     # Calculer le nombre de semaines passées depuis le début de l'année
     weeks_passed = get_weeks_passed(start_date, current_date)
     #Établir la liste de toutes les dates de début de semaine
-    L_dates_debut_semaines=
+    L_dates_debut_semaines=None
 
     # Afficher le nombre de semaines passées dans la barre latérale
     st.sidebar.write(f"**Semaine en cours** : {weeks_passed}")
