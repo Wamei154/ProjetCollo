@@ -50,20 +50,20 @@ def get_start_of_week(date):
     return start_of_week.strftime("%d/%m")  # Format JJ/MM/AAAA
 
 # Définir les bornes de date
-start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
-end_date = datetime.strptime("22/11", "%d/%m").replace(year=datetime.now().year)
+    start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
+    end_date = datetime.strptime("22/11", "%d/%m").replace(year=datetime.now().year)
 
-# Date actuelle
-current_date = datetime.now()
+    # Date actuelle
+    current_date = datetime.now()
 
-st.title("Colloscope - Date calculée")
+    st.title("Colloscope - Date calculée")
 
-# Vérification si la date actuelle est entre les bornes
-if start_date <= current_date <= end_date:
-    first_day_of_week = get_start_of_week(current_date)
-    st.write(f"**Date du premier jour de la semaine :** {first_day_of_week}")
-else:
-    st.write(f"**La date actuelle ({current_date.strftime('%d/%m')}) n'est pas dans l'intervalle défini.**")
+    # Vérification si la date actuelle est entre les bornes
+    if start_date <= current_date <= end_date:
+        first_day_of_week = get_start_of_week(current_date)
+        st.write(f"**Date du premier jour de la semaine :** {first_day_of_week}")
+    else:
+        st.write(f"**La date actuelle ({current_date.strftime('%d/%m')}) n'est pas dans l'intervalle défini.**")
 
 def get_current_week():
     now = datetime.now()
