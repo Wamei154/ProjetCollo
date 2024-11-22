@@ -87,6 +87,9 @@ def colo(groupe, semaine, data_dict, data_dict1):
         if groupe not in data_dict:
             raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
 
+        # Convertir 'semaine' en entier pour éviter l'erreur de type
+        semaine = int(semaine)
+
         if semaine - 1 >= len(data_dict[groupe]) or semaine - 1 < 0:
             raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
 
@@ -129,6 +132,7 @@ def colo(groupe, semaine, data_dict, data_dict1):
         return m
 
     return m
+
 
 
 def display_data():
