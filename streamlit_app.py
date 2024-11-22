@@ -196,13 +196,15 @@ def main():
         st.session_state.classe = classe
         display_data()
 
+    if st.sidebar.button("Afficher", on_click=display_data):
+        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="⚠️")
     st.markdown(
         """
-        <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px;">
+        <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
