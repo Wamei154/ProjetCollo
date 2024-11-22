@@ -141,15 +141,6 @@ def display_data():
     save_settings(groupe, semaine, classe)
 
     try:
-        semaine = int(semaine)
-        if semaine < 1 or semaine > 30:
-            st.error("La Semaine doit être entre 1 et 30.")
-            return
-    except ValueError:
-        st.error("Veuillez entrer une Semaine valide entre 1 et 30.")
-        return
-
-    try:
         group_number = int(groupe[1:])
         if group_number < 0 or group_number > 20:
             st.error("Le Groupe doit être entre 1 et 20.")
