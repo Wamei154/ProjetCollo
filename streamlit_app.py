@@ -175,7 +175,7 @@ def main():
     # Ajout de l'affichage du premier jour de la semaine
     st.sidebar.subheader("Date calculée")
     start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
-    end_date = datetime.strptime("22/11", "%d/%m").replace(year=datetime.now().year)
+    end_date = datetime.strptime("23/11", "%d/%m").replace(year=datetime.now().year)
     current_date = datetime.now()
 
     if start_date <= current_date <= end_date:
