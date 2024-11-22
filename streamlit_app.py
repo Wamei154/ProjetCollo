@@ -3,7 +3,7 @@ import streamlit as st
 from openpyxl import load_workbook
 import pandas as pd
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def resource_path(relative_path):
     """ Return the absolute path to the resource """
@@ -44,26 +44,6 @@ def load_data(classe):
 
     return data_dict, data_dict1
 
-def get_start_of_week(date):
-    # Trouve le premier jour de la semaine (lundi)
-    start_of_week = date - timedelta(days=date.weekday())
-    return start_of_week.strftime("%d/%m")  # Format JJ/MM/AAAA
-
-# Définir les bornes de date
-    start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
-    end_date = datetime.strptime("22/11", "%d/%m").replace(year=datetime.now().year)
-
-    # Date actuelle
-    current_date = datetime.now()
-
-    st.title("Colloscope - Date calculée")
-
-    # Vérification si la date actuelle est entre les bornes
-    if start_date <= current_date <= end_date:
-        first_day_of_week = get_start_of_week(current_date)
-        st.write(f"**Date du premier jour de la semaine :** {first_day_of_week}")
-    else:
-        st.write(f"**La date actuelle ({current_date.strftime('%d/%m')}) n'est pas dans l'intervalle défini.**")
 
 def get_current_week():
     now = datetime.now()
@@ -74,6 +54,7 @@ def get_current_week():
 def save_settings(groupe, semaine, classe):
     with open('config.txt', 'w') as f:
         f.write(f"{groupe}\n{semaine}\n{classe}")
+
 
 def load_settings():
     groupe = "G10"
@@ -93,28 +74,20 @@ def colo(groupe, semaine, data_dict, data_dict1):
     m = []
 
     try:
-        # Vérification de la présence du groupe dans data_dict
         if groupe not in data_dict:
             raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
 
-        # Vérification que l'index de la semaine est valide
         if semaine - 1 >= len(data_dict[groupe]) or semaine - 1 < 0:
             raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
 
-        # Accès aux données de la semaine spécifiée
         s = data_dict[groupe][semaine - 1]
 
-        # Boucle pour assembler les éléments
         for k in range(len(s)):
-            # Vérification de la clé dans data_dict1
             if s[k] not in data_dict1:
                 raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
 
-            # Assemble the row
             joined_elements = flatten_list(data_dict1[s[k]])
-
-            # Handle specific letters to assign subjects (Matière)
-            matiere = "Non spécifié"  # Default value
+            matiere = "Non spécifié"
 
             if s[k].startswith('M'):
                 matiere = "Mathématiques"
@@ -128,9 +101,7 @@ def colo(groupe, semaine, data_dict, data_dict1):
                 matiere = "Informatique"
             elif s[k].startswith('P'):
                 matiere = "Physique"
-            # Add more conditions for other subjects as needed
 
-            # Add the Matière column to the row
             joined_elements.append(matiere)
             m.append(joined_elements)
 
@@ -149,6 +120,10 @@ def colo(groupe, semaine, data_dict, data_dict1):
     return m
 
 
+def get_start_of_week(date):
+    """ Retourne le premier jour de la semaine (lundi) """
+    start_of_week = date - timedelta(days=date.weekday())
+    return start_of_week.strftime("%d/%m/%Y")  # Format JJ/MM/AAAA
 
 
 def display_data():
@@ -156,7 +131,7 @@ def display_data():
     semaine = st.session_state.semaine
     classe = st.session_state.classe
 
-    save_settings(groupe, semaine, classe)  
+    save_settings(groupe, semaine, classe)
 
     try:
         semaine = int(semaine)
@@ -164,7 +139,7 @@ def display_data():
             st.error("La Semaine doit être entre 1 et 30.")
             return
     except ValueError:
-        st.error("Veuillez entrer une Semaine valide entre 1 et 30. Les lettres ou autres caractères ne sont pas nécessaires.")
+        st.error("Veuillez entrer une Semaine valide entre 1 et 30.")
         return
 
     try:
@@ -180,13 +155,10 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-    # Updated columns to include the Matière
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
-
-
 
 
 def main():
@@ -194,21 +166,26 @@ def main():
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
-
     st.sidebar.header("Sélection")
-    
+
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
-    
-    if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing' ):
-        st.sidebar.markdown(
-            f'En Construction',
-            unsafe_allow_html=True
-        )
+
+    # Ajout de l'affichage du premier jour de la semaine
+    st.sidebar.subheader("Date calculée")
+    start_date = datetime.strptime("18/11", "%d/%m").replace(year=datetime.now().year)
+    end_date = datetime.strptime("22/11", "%d/%m").replace(year=datetime.now().year)
+    current_date = datetime.now()
+
+    if start_date <= current_date <= end_date:
+        first_day_of_week = get_start_of_week(current_date)
+        st.sidebar.write(f"Premier jour de la semaine : {first_day_of_week}")
+    else:
+        st.sidebar.write("Date hors intervalle.")
 
     if st.sidebar.button("Afficher", on_click=display_data):
-        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="⚠️")
+        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""", icon="⚠️")
     st.markdown(
         """
         <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
@@ -217,10 +194,11 @@ def main():
         """,
         unsafe_allow_html=True
     )
-   
+
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
-    st.session_state.classe = classe  
-    
+    st.session_state.classe = classe
+
+
 if __name__ == "__main__":
     main()
