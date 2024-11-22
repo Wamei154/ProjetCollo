@@ -197,8 +197,8 @@ def main():
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
-    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(load_settings()[1])-1)  # Selection de la semaine avec Selectbox
-    #semaine = st.sidebar.selectbox("Semaine", options=[str(i)+str(L_dates_debut_semaines[i])+"à"+str(L_dates_debut_semaines[i+1]) for i in range(1, 31)], index=int(load_settings()[1])-1)  # Selection de la semaine avec Selectbox
+    #semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(load_settings()[1])-1)  # Selection de la semaine avec Selectbox
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i)+str(L_dates_debut_semaines[i])+"à"+str(L_dates_debut_semaines[i+1]) for i in range(1, 31)], index=int(load_settings()[1])-1)  # Selection de la semaine avec Selectbox
     
     if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing'):
         st.sidebar.markdown(
