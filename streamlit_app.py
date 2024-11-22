@@ -177,14 +177,18 @@ def main():
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
     semaine = st.sidebar.text_input("Semaine", value=load_settings()[1])
 
-    # Ajout de l'affichage du premier jour de la semaine
-        # Configuration de la date de début et de la date actuelle
+    # Configuration de la date de début et de la date actuelle
     start_date = datetime.strptime("16/09/2024", "%d/%m/%Y")  # Début de la première semaine
     current_date = datetime.now()  # Date actuelle
 
-    # Calcul de la semaine courante ou suivante
-    first_day_of_week = get_week_start_date(start_date, current_date)
-    st.sidebar.write(f"Premier jour de la semaine : {first_day_of_week}")
+    # Calcul dynamique de la semaine courante ou suivante
+    while current_date > start_date + timedelta(days=6):  # Si hors intervalle de la semaine actuelle
+        start_date += timedelta(days=7)  # Passer à la semaine suivante
+
+    end_date = start_date + timedelta(days=6)  # Fin de la semaine courante
+
+    st.sidebar.write(f"Premier jour de la semaine : {start_date.strftime('%d/%m/%Y')}")
+    st.sidebar.write(f"Dernier jour de la semaine : {end_date.strftime('%d/%m/%Y')}")
 
 
     if start_date <= current_date <= end_date:
