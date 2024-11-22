@@ -194,10 +194,9 @@ def main():
         st.session_state.groupe = groupe
         st.session_state.semaine = semaine
         st.session_state.classe = classe
+        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="⚠️")
         display_data()
 
-    if st.sidebar.button("Afficher", on_click=display_data):
-        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="⚠️")
     st.markdown(
         """
         <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
