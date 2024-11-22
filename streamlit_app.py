@@ -132,6 +132,8 @@ def colo(groupe, semaine, data_dict, data_dict1):
     return m
 
 
+
+
 def display_data():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
@@ -161,14 +163,13 @@ def display_data():
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
-    # Displaying the selected week number
-    st.subheader(f"Emploi du temps pour la semaine {semaine} du groupe {groupe}")
-
     # Updated columns to include the Matière
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
+
+
 
 
 def main():
