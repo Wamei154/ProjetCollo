@@ -2,11 +2,11 @@ import os
 import streamlit as st
 from openpyxl import load_workbook
 import pandas as pd
-from datetime import datetime, timedelta
-
+import time
+from datetime import datetime
 
 def resource_path(relative_path):
-    """Retourne le chemin absolu vers une ressource."""
+    """ Return the absolute path to the resource """
     base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
@@ -17,7 +17,7 @@ def flatten_list(nested_list):
 
 @st.cache_data
 def load_data(classe):
-    """Charge les données des fichiers Excel selon la classe sélectionnée."""
+    """ Load data from Excel files based on the selected class """
     colloscope_file = resource_path(f'Colloscope{classe}.xlsx')
     legende_file = resource_path(f'Legende{classe}.xlsx')
 
@@ -45,63 +45,59 @@ def load_data(classe):
     return data_dict, data_dict1
 
 
-def get_week_dates(start_date, current_date):
-    """
-    Calcule les dates de début de la semaine actuelle et de la semaine suivante.
-    :param start_date: Date de début de la première semaine (datetime).
-    :param current_date: Date actuelle (datetime).
-    :return: Tuple contenant les dates de début des semaines actuelle et suivante.
-    """
-    # Trouver le début de la semaine actuelle
-    while current_date > start_date + timedelta(days=6):  # Si hors intervalle de la semaine
-        start_date += timedelta(days=7)
-    # Calculer la semaine suivante
-    next_week_start = start_date + timedelta(days=7)
-    return start_date, next_week_start
+def get_current_week():
+    now = datetime.now()
+    current_week = now.isocalendar()[1]
+    return min(current_week, 30)
 
 
 def save_settings(groupe, semaine, classe):
-    """Sauvegarde les paramètres sélectionnés dans un fichier de configuration."""
     with open('config.txt', 'w') as f:
         f.write(f"{groupe}\n{semaine}\n{classe}")
 
-
 def load_settings():
-    """Charge les paramètres sauvegardés à partir du fichier de configuration."""
     groupe = "G10"
-    semaine = "1"
+    semaine = str(get_current_week())
+    classe = "1"  # Default class
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as f:
             lines = f.readlines()
             if len(lines) >= 3:
                 groupe = lines[0].strip()
+                semaine = lines[1].strip()
                 classe = lines[2].strip()
-    return groupe, classe
+    return groupe, semaine, classe
 
 
 def colo(groupe, semaine, data_dict, data_dict1):
-    """Construit les données à afficher pour le colloscope."""
     m = []
 
     try:
+        # Vérification de la présence du groupe dans data_dict
         if groupe not in data_dict:
             raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
 
         # Convertir 'semaine' en entier pour éviter l'erreur de type
         semaine = int(semaine)
 
+        # Vérification que l'index de la semaine est valide
         if semaine - 1 >= len(data_dict[groupe]) or semaine - 1 < 0:
             raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
 
+        # Accès aux données de la semaine spécifiée
         s = data_dict[groupe][semaine - 1]
 
+        # Boucle pour assembler les éléments
         for k in range(len(s)):
+            # Vérification de la clé dans data_dict1
             if s[k] not in data_dict1:
                 raise KeyError(f"La clé '{s[k]}' n'existe pas dans les données de légende.")
 
+            # Assemble the row
             joined_elements = flatten_list(data_dict1[s[k]])
 
-            matiere = "Non spécifié"
+            # Handle specific letters to assign subjects (Matière)
+            matiere = "Non spécifié"  # Default value
 
             if s[k].startswith('M'):
                 matiere = "Mathématiques"
@@ -115,7 +111,9 @@ def colo(groupe, semaine, data_dict, data_dict1):
                 matiere = "Informatique"
             elif s[k].startswith('P'):
                 matiere = "Physique"
+            # Add more conditions for other subjects as needed
 
+            # Add the Matière column to the row
             joined_elements.append(matiere)
             m.append(joined_elements)
 
@@ -135,12 +133,22 @@ def colo(groupe, semaine, data_dict, data_dict1):
 
 
 
+
 def display_data():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
 
-    save_settings(groupe, semaine, classe)
+    save_settings(groupe, semaine, classe)  
+
+    try:
+        semaine = int(semaine)
+        if semaine < 1 or semaine > 30:
+            st.error("La Semaine doit être entre 1 et 30.")
+            return
+    except ValueError:
+        st.error("Veuillez entrer une Semaine valide entre 1 et 30. Les lettres ou autres caractères ne sont pas nécessaires.")
+        return
 
     try:
         group_number = int(groupe[1:])
@@ -148,59 +156,53 @@ def display_data():
             st.error("Le Groupe doit être entre 1 et 20.")
             return
     except ValueError:
-        st.error("Veuillez entrer un Groupe valide et commencer par 'G'.")
+        st.error("Veuillez entrer un Groupe valide entre 1 et 20 et de commencer par 'G' comme G10.")
         return
 
     data_dict, data_dict1 = load_data(classe)
 
     data = colo(groupe, semaine, data_dict, data_dict1)
 
+    # Updated columns to include the Matière
     df = pd.DataFrame(data, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
     df.index = ['' for i in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
 
 
+
+
 def main():
+    if st.sidebar.button('EDT EPS'):
+        st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
+        st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
+
     st.sidebar.header("Sélection")
-
-    # Date de début de la première semaine
-    start_date = datetime.strptime("16/09/2024", "%d/%m/%Y")
-    current_date = datetime.now()
-
-    # Calculer les semaines actuelle et suivante
-    current_week_start, next_week_start = get_week_dates(start_date, current_date)
-
-    # Formater les dates des semaines
-    current_week_str = current_week_start.strftime("%d/%m")
-    next_week_str = next_week_start.strftime("%d/%m")
-
-    # Afficher les informations sur les semaines
-    st.sidebar.write(f"**Semaine actuelle** : {current_week_str}")
-    st.sidebar.write(f"**Semaine suivante** : {next_week_str}")
-
+    
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
-    groupe = st.sidebar.text_input("Groupe", value="G1")
+    groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(load_settings()[1])-1)  # Selection de la semaine avec Selectbox
+    
+    if st.sidebar.button("Télécharger le fichier EXE", 'https://drive.google.com/drive/folders/1EiyTE39U-jhlz4S8Mtun3qG04IG0_Gxn?usp=sharing' ):
+        st.sidebar.markdown(
+            f'En Construction',
+            unsafe_allow_html=True
+        )
 
-    # Générer une liste des semaines possibles
-    semaines_disponibles = [str(i) for i in range(1, 31)]  # Semaine 1 à 30
-    semaine = st.sidebar.selectbox("Semaine", options=semaines_disponibles, index=0)
-
-    if st.sidebar.button("Afficher"):
-        st.session_state.groupe = groupe
-        st.session_state.semaine = semaine
-        st.session_state.classe = classe
-        display_data()
-
+    if st.sidebar.button("Afficher", on_click=display_data):
+        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="⚠️")
     st.markdown(
         """
-        <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px;">
+        <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
-
-
+   
+    st.session_state.groupe = groupe
+    st.session_state.semaine = semaine
+    st.session_state.classe = classe  
+    
 if __name__ == "__main__":
     main()
