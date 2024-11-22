@@ -57,7 +57,7 @@ def save_settings(groupe, semaine, classe):
         f.write(f"{groupe}\n{semaine}\n{classe}")
 
 def load_settings():
-    groupe = "G10"
+    groupe = "G1"
     semaine = str(get_current_week())
     classe = "1"  # Classe par défaut
     if os.path.exists('config.txt'):
