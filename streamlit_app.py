@@ -177,25 +177,24 @@ def main():
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value="G1")
-    semaine = st.sidebar.selectbox("Semaine", options=["S1 (16/09)", "S2 (23/09)", "S3 (30/09)", "S4 (07/10)",
-                                                        "S5 (14/10)", "S6 (04/11)", "S7 (11/11)", "S8 (18/11)", 
-                                                        "9", "10", "11", "12", "13", "14", "15", "16", "17", "18",
-                                                        "19", "20", "21", "22", "23", "24", "25", "26", "27", "28","29", "30"], index=0)
+
+    # Générer une liste des semaines possibles
+    semaines_disponibles = [str(i) for i in range(1, 31)]  # Semaine 1 à 30
+    semaine = st.sidebar.selectbox("Semaine", options=semaines_disponibles, index=0)
 
     if st.sidebar.button("Afficher"):
         st.session_state.groupe = groupe
         st.session_state.semaine = semaine
         st.session_state.classe = classe
-        st.info("""Veuillez verifier quand même de temps en temps votre colloscope papier, pour verifier si il n'y a pas d'erreur""",icon="⚠️")
         display_data()
 
     st.markdown(
         """
-        <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
+        <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
