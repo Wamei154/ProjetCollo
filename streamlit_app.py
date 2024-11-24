@@ -189,11 +189,12 @@ def main():
 
     # Calculer le nombre de semaines passées depuis le début de l'année
     weeks_passed = get_weeks_passed(start_date, current_date)
+    current_week_str = current_week.strftime("%d/%m")
     #Établir la liste de toutes les dates de début de semaine
     L_dates_debut_semaines=None
 
     # Afficher le nombre de semaines passées dans la barre latérale
-    st.sidebar.write(f"**Semaine en cours** : {weeks_passed}")
+    st.sidebar.write(f"**Semaine en cours** : {weeks_passed}, {current_week_str}")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
