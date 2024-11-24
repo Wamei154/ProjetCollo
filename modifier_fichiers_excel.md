@@ -1,6 +1,6 @@
 # Tutoriel : Modifier les fichiers Excel pour le Colloscope
 
-Ce tutoriel vous guide pour mettre à jour ou modifier les fichiers Excel utilisés par votre application de colloscope Streamlit.
+Ce tutoriel vous guide pour mettre à jour ou modifier les fichiers Excel utilisés par votre application de colloscope Streamlit, vous pouvez prendre exemple avec les fichiers excels déjà existant, il faut que les nouveaux fichier excels soit les mêmes que ceux existant sinon le programme ne fonctionnera pas.
 
 ---
 
@@ -27,8 +27,8 @@ Ce tutoriel vous guide pour mettre à jour ou modifier les fichiers Excel utilis
 #### **Legende\<classe>.xlsx**
 | **Clé** | **Professeur** | **Jour** | **Heure** | **Salle** |
 |---------|----------------|----------|-----------|-----------|
-| M1      | Dupont         | Lundi    | 8h-10h    | Salle 101 |
-| SI1     | Martin         | Mardi    | 10h-12h   | Salle 202 |
+| M1      | ......         | Lundi    | 8h-10h    | Salle 101 |
+| SI1     | ......         | Mardi    | 10h-12h   | Salle 202 |
 
 - **Colonne 1 (Clé) :** Identifiant unique lié à chaque cours.
 - **Colonnes suivantes :** Détails associés à chaque clé :
