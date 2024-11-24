@@ -189,7 +189,7 @@ def main():
 
     # Calculer le nombre de semaines passées depuis le début de l'année
     weeks_passed = get_weeks_passed(start_date, current_date)
-    current_week_str = current_week.strftime("%d/%m")
+    current_week_str = current_date.strftime("%d/%m")
     #Établir la liste de toutes les dates de début de semaine
     L_dates_debut_semaines=None
 
