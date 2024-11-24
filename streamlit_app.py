@@ -195,7 +195,7 @@ def main():
 
     # Afficher le nombre de semaines passées dans la barre latérale
     st.sidebar.write(f"**Semaine en cours** : {weeks_passed}")
-    st.sidebar.write(f"**Date :  {current_week_str}")
+    st.sidebar.write(f"**Date** :  {current_week_str}")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=load_settings()[0])
