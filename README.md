@@ -1,6 +1,6 @@
 # Projet Streamlit - Gestion de Colloscope
 
-Ce projet est une application Streamlit permettant de gérer et d'afficher les informations d'un colloscope (emploi du temps des groupes d'élèves), avec une interface simple pour sélectionner le groupe, la semaine et la classe.
+Ce projet est une application Streamlit permettant de gérer et d'afficher les informations d'un colloscope (emploi du temps des groupes de kholle), avec une interface simple pour sélectionner le groupe, la semaine et la classe.
 
 ## Fonctionnalités
 
