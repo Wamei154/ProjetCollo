@@ -71,8 +71,3 @@ Ce tutoriel vous guide pour mettre à jour ou modifier les fichiers Excel utilis
 2. **IMPORTANT :** Conservez le format `.xlsx` et ne changez pas le nom du fichier.
 
 ---
-
-## 🚀 **Vérification dans l'application**
-1. Lancez l'application Streamlit.
-   ```bash
-   streamlit run app.py
