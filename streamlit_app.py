@@ -140,7 +140,7 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
 def calculer_semaines_ecoulees(date_debut, date_actuelle):
     """Calcule le nombre de semaines passées depuis la date de début"""
     delta = date_actuelle - date_debut
-    semaines_ecoulees = delta.days // 7
+    semaines_ecoulees = delta.days // 5
     return semaines_ecoulees
 
 
