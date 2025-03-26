@@ -197,7 +197,6 @@ def principal():
     semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle)
     date_actuelle_str = date_actuelle.strftime("%d/%m")
 
-    st.sidebar.write(f"**Semaine en cours** : {semaines_ecoulees}")
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
@@ -205,13 +204,10 @@ def principal():
     semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(charger_parametres()[1]) - 1)
 
     cols = st.sidebar.columns(3)
-
     if cols[0].button("Afficher", on_click=afficher_donnees):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-
     if cols[1].button(":material/arrow_left:"):
         st.session_state["selection"] = 1
-
     if cols[2].button(":material/arrow_right:"):
         st.session_state["selection"] = 2
 
