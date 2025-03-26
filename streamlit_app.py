@@ -4,14 +4,17 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime
 
+logo_prepa = "logo_prepa.png"
+st.logo(logo_prepa)
+
 def chemin_ressource(chemin_relatif):
-    """Retourne le chemin absolu vers la ressource"""
+    """Retourne le chemin vers la ressource"""
     base_path = os.path.abspath(".")
     return os.path.join(base_path, chemin_relatif)
 
 
 def aplatir_liste(liste_imbriquee):
-    """Aplatis une liste imbriquée"""
+    """Aplatis la liste"""
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
 
@@ -151,7 +154,7 @@ def changer_semaine(sens):
             st.session_state.semaine = nouvelle_semaine
 
 def afficher_donnees():
-    """Affiche les données dans un tableau Streamlit"""
+    """Affiche les données dans un tableau"""
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
@@ -189,7 +192,7 @@ def afficher_donnees():
 
 
 def principal():
-    """Fonction principale de l'application Streamlit"""
+    """Fonction principale de l'application """
     if st.sidebar.button('EDT EPS'):
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
