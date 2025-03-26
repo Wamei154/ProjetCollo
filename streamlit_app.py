@@ -204,18 +204,16 @@ def principal():
     groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
     semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(charger_parametres()[1]) - 1)
 
-    if st.sidebar.button("Afficher", on_click=afficher_donnees):
-        st.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-    option_map = {
-        1: ":material/arrow_left:",
-        2: ":material/arrow_right:",
-    }
-    selection = st.sidebar.pills(
-        "",
-        options=option_map.keys(),
-        format_func=lambda option: option_map[option],
-        selection_mode="single",
-    )
+    cols = st.sidebar.columns(3)
+
+    if cols[0].button("Afficher", on_click=afficher_donnees):
+        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+
+    if cols[1].button(":material/arrow_left:"):
+        st.session_state["selection"] = 1
+
+    if cols[2].button(":material/arrow_right:"):
+        st.session_state["selection"] = 2
 
     st.markdown(
         """
