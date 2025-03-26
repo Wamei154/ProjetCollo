@@ -189,7 +189,18 @@ def afficher_donnees():
 
 
 def principal():
-    """Fonction principale de l'application Streamlit"""
+   """Fonction principale de l'application Streamlit"""
+
+    # Initialisation correcte des variables de session
+    if "semaine" not in st.session_state:
+        st.session_state.semaine = int(charger_parametres()[1])  # Initialise avec la semaine par défaut
+
+    if "groupe" not in st.session_state:
+        st.session_state.groupe = charger_parametres()[0]
+
+    if "classe" not in st.session_state:
+        st.session_state.classe = charger_parametres()[2]
+        
     if "semaine" not in st.session_state:
         st.session_state.semaine = int(charger_parametres()[1])  # Assure l'initialisation correcte
 
