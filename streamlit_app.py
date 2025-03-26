@@ -206,16 +206,16 @@ def principal():
 
     if st.sidebar.button("Afficher", on_click=afficher_donnees):
         st.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-        option_map = {
-            1: ":material/zoom_in:",
-            2: ":material/zoom_out:",
-        }
-        selection = st.pills(
-            "",
-            options=option_map.keys(),
-            format_func=lambda option: option_map[option],
-            selection_mode="single",
-        )
+    option_map = {
+        1: ":material/zoom_in:",
+        2: ":material/zoom_out:",
+    }
+    selection = st.sidebar.pills(
+        "",
+        options=option_map.keys(),
+        format_func=lambda option: option_map[option],
+        selection_mode="single",
+    )
 
     st.markdown(
         """
