@@ -208,29 +208,42 @@ def principal():
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
-    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(charger_parametres()[1]) - 1)
+    
+    # Sélection de la semaine avec le bon index
+    semaine = int(charger_parametres()[1])
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=semaine - 1)
 
+    # Stocker les valeurs dans session_state
+    st.session_state.groupe = groupe
+    st.session_state.semaine = semaine
+    st.session_state.classe = classe
+
+    # Boutons pour changer de semaine
     cols = st.sidebar.columns(3)
-    if cols[0].button("Afficher", on_click=afficher_donnees):
-        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-    if cols[1].button(":material/arrow_left:", on_click=afficher_donnees):
-        st.session_state["selection"] = 1
+    
+    if cols[0].button(":material/arrow_left:"):
+        changer_semaine(-1)  # Diminue la semaine et met à jour session_state
+        st.rerun()
+
     if cols[2].button(":material/arrow_right:"):
-        st.session_state["selection"] = 2
+        changer_semaine(1)  # Augmente la semaine et met à jour session_state
+        st.rerun()
+
+    if cols[1].button("Afficher"):
+        afficher_donnees()
+        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+
+    # Affichage des données après mise à jour
+    afficher_donnees()
 
     st.markdown(
         """
-        <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
+        <div style="position: fixed; center: 0; width: 100%; font-size: 10px;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
         unsafe_allow_html=True
     )
-
-    st.session_state.groupe = groupe
-    st.session_state.semaine = semaine
-    st.session_state.classe = classe
-
 
 if __name__ == "__main__":
     principal()
