@@ -143,6 +143,12 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle):
     semaines_ecoulees = delta.days // 7
     return semaines_ecoulees
 
+def changer_semaine(sens):
+    """Modifie la semaine en fonction du bouton pressé"""
+    if "semaine" in st.session_state:
+        nouvelle_semaine = int(st.session_state.semaine) + sens
+        if 1 <= nouvelle_semaine <= 30:
+            st.session_state.semaine = nouvelle_semaine
 
 def afficher_donnees():
     """Affiche les données dans un tableau Streamlit"""
