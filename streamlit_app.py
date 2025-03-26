@@ -170,12 +170,6 @@ def afficher_donnees():
         st.error("Veuillez entrer un Groupe valide entre 1 et 20.")
         return
 
-    if "selection" in st.session_state:
-        if st.session_state.selection == 1:  # Flèche gauche
-            semaine = max(1, semaine - 1)
-        elif st.session_state.selection == 2:  # Flèche droite
-            semaine = min(30, semaine + 1)
-        st.session_state.semaine = semaine  # Mettre à jour la semaine dans la sessio
 
     dictionnaire_donnees, dictionnaire_legende = charger_donnees(classe)
 
