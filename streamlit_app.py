@@ -210,13 +210,13 @@ def principal():
     option_map = {
     1: ":material/zoom_in:",
     2: ":material/zoom_out:",
-}
-selection = st.pills(
+    }
+    selection = st.pills(
     "",
     options=option_map.keys(),
     format_func=lambda option: option_map[option],
     selection_mode="single",
-)
+    )
 
     st.markdown(
         """
