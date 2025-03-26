@@ -207,8 +207,8 @@ def principal():
     if st.sidebar.button("Afficher", on_click=afficher_donnees):
         st.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
     option_map = {
-        1: ":material/zoom_in:",
-        2: ":material/zoom_out:",
+        1: ":material/arrow_left:",
+        2: ":material/arrow_right:",
     }
     selection = st.sidebar.pills(
         "",
