@@ -206,7 +206,7 @@ def principal():
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher", on_click=afficher_donnees):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-    if cols[1].button(":material/arrow_left:"):
+    if cols[1].button(":material/arrow_left:", on_click=afficher_donnees(semaine -1):
         st.session_state["selection"] = 1
     if cols[2].button(":material/arrow_right:"):
         st.session_state["selection"] = 2
