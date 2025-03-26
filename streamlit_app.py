@@ -189,21 +189,7 @@ def afficher_donnees():
 
 
 def principal():
-   """Fonction principale de l'application Streamlit"""
-
-    # Initialisation correcte des variables de session
-    if "semaine" not in st.session_state:
-        st.session_state.semaine = int(charger_parametres()[1])  # Initialise avec la semaine par défaut
-
-    if "groupe" not in st.session_state:
-        st.session_state.groupe = charger_parametres()[0]
-
-    if "classe" not in st.session_state:
-        st.session_state.classe = charger_parametres()[2]
-        
-    if "semaine" not in st.session_state:
-        st.session_state.semaine = int(charger_parametres()[1])  # Assure l'initialisation correcte
-
+    """Fonction principale de l'application Streamlit"""
     if st.sidebar.button('EDT EPS'):
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
@@ -222,37 +208,29 @@ def principal():
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(charger_parametres()[1]) - 1)
 
-    # Sélection de la semaine avec la session_state
-    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=st.session_state.semaine - 1)
-
-    # Mise à jour des paramètres dans session_state
-    st.session_state.groupe = groupe
-    st.session_state.classe = classe
-
-    # Aligner les boutons et mettre à jour la semaine
     cols = st.sidebar.columns(3)
-    
-    if cols[1].button("⬅️"):
-        changer_semaine(-1)  # Diminue la semaine et rafraîchit la page
-    
-    if cols[2].button("➡️"):
-        changer_semaine(1)  # Augmente la semaine et rafraîchit la page
-
-    if cols[3].button("Afficher"):
-        afficher_donnees()
+    if cols[0].button("Afficher", on_click=afficher_donnees):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-
-    # Afficher les données après mise à jour
-    afficher_donnees()
+    if cols[1].button(":material/arrow_left:", on_click=afficher_donnees):
+        st.session_state["selection"] = 1
+    if cols[2].button(":material/arrow_right:"):
+        st.session_state["selection"] = 2
 
     st.markdown(
         """
-        <div style="position: fixed; center: 0; width: 100%; font-size: 10px;">
+        <div style="position: fixed ; center: 0; width: 100%; font-size: 10px;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
         unsafe_allow_html=True
     )
+
+    st.session_state.groupe = groupe
+    st.session_state.semaine = semaine
+    st.session_state.classe = classe
+
+
 if __name__ == "__main__":
     principal()
