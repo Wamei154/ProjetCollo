@@ -4,7 +4,7 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime
 
-st.logo("logo_prepa.png", size='large')
+st.logo("Site du lycée", size='large')
 st.sidebar.link_button("logo_prepa.png", "https://sites.google.com/site/cpgetsimarcelsembat/")
 
 def chemin_ressource(chemin_relatif):
