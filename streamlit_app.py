@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(
     page_title="Colloscope"
 )
-st.markdown("logo_prepa.png", size='large')
+st.logo("logo_prepa.png", size='large')
 st.sidebar.link_button("Site du lycée", "https://sites.google.com/site/cpgetsimarcelsembat/")
 
 def chemin_ressource(chemin_relatif):
