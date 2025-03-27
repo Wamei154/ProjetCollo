@@ -213,10 +213,10 @@ def principal():
     cols = st.columns(2)
     if  st.sidebar.button("Afficher", on_click=afficher_donnees):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-    if cols[1].button(":material/arrow_left:", on_click=lambda: changer_semaine(-1)):
+    if cols[0].button(":material/arrow_left:", on_click=lambda: changer_semaine(-1)):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-    if cols[2].button(":material/arrow_right:", on_click=lambda: changer_semaine(1)):
+    if cols[1].button(":material/arrow_right:", on_click=lambda: changer_semaine(1)):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
 
