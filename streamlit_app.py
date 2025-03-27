@@ -210,8 +210,8 @@ def principal():
     groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
     semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(charger_parametres()[1]) - 1)
 
-    cols = st.sidebar.columns(3)
-    if cols[0].button("Afficher", on_click=afficher_donnees):
+    cols = st.columns(2)
+    if  st.sidebar.button("Afficher", on_click=afficher_donnees):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
     if cols[1].button(":material/arrow_left:", on_click=lambda: changer_semaine(-1)):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
