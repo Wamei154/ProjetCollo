@@ -20,7 +20,7 @@ html_code = f'''
 </a>
 '''
 
-st.markdown(html_code, unsafe_allow_html=True)
+st.sidebar.markdown(html_code, unsafe_allow_html=True)
 
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
