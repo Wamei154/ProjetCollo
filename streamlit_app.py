@@ -3,17 +3,24 @@ import streamlit as st
 from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime
-
+import base64
 
 st.set_page_config(page_title="Colloscope")
 
 st.logo("logo_prepa.png", size='large')
-st.sidebar.markdown(
-    '<a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">'
-    '<img src="logo_prepa.png" width="150">'
-    '</a>',
-    unsafe_allow_html=True
-)
+
+# Charger et encoder l'image en base64
+with open("logo_prepa.png", "rb") as img_file:
+    b64_data = base64.b64encode(img_file.read()).decode()
+
+# Créer le code HTML avec l'image encodée
+html_code = f'''
+<a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">
+    <img src="data:image/png;base64,{b64_data}" width="150">
+</a>
+'''
+
+st.markdown(html_code, unsafe_allow_html=True)
 
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
