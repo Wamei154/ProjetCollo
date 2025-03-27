@@ -9,8 +9,7 @@ st.set_page_config(
     page_title="Colloscope"
 )
 st.logo("logo_prepa.png", size='large')
-st.sidebar.markdown([![this is an image link](https://i.imgur.com/mQAQwvt.png)](https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=686079794781-0bt8ot3ie81iii7i17far5vj4s0p20t7.apps.googleusercontent.com&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fwebmasters.readonly&state=vryYlMrqKikWGlFVwqhnMpfqr1HMiq&prompt=consent&access_type=offline)"
-        ))
+st.sidebar.markdown([![this is an image link](https://i.imgur.com/mQAQwvt.png)](https://sites.google.com/site/cpgetsimarcelsembat/))
 
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
