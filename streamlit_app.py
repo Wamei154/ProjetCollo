@@ -11,13 +11,7 @@ with open("logo_prepa.png", "rb") as img_file:
     b64_data = base64.b64encode(img_file.read()).decode()
 
 
-html_code = f'''
-<div style="text-align: center; margin-bottom: 100px;">
-    <a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">
-        <img src="data:image/png;base64,{b64_data}" width="150">
-    </a>
-</div>
-'''
+html_code = f'''<div style="text-align: center; margin-bottom: 80px;"><a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank"><img src="data:image/png;base64,{b64_data}" width="150"></a></div>'''
 st.sidebar.markdown(html_code, unsafe_allow_html=True)
 
 def chemin_ressource(chemin_relatif):
