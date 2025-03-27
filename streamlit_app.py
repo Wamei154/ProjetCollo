@@ -9,7 +9,7 @@ st.set_page_config(
     page_title="Colloscope"
 )
 st.logo("logo_prepa.png", size='large')
-st.sidebar.markdown([[this is an image link](https://i.imgur.com/mQAQwvt.png)](https://sites.google.com/site/cpgetsimarcelsembat/))
+st.sidebar.markdown([logo_prepa.png](https://sites.google.com/site/cpgetsimarcelsembat/))
 
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
