@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 
 st.logo("logo_prepa.png", size='large')
-st.sidebar.link_button("Site du lycée", "https://sites.google.com/site/cpgetsimarcelsembat/")
+st.sidebar.link_button("Site du lycée", "https://sites.google.com/site/cpgetsimarcelsembat/", icon='logo_prepa.png')
 
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
