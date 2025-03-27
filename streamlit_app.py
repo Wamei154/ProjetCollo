@@ -4,6 +4,8 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime
 
+st.logo("logo_prepa.png")
+
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
     base_path = os.path.abspath(".")
