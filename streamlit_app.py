@@ -7,8 +7,6 @@ import base64
 
 st.set_page_config(page_title="Colloscope")
 
-st.logo("logo_prepa.png", size='large')
-
 # Charger et encoder l'image en base64
 with open("logo_prepa.png", "rb") as img_file:
     b64_data = base64.b64encode(img_file.read()).decode()
