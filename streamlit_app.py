@@ -7,18 +7,20 @@ import base64
 
 st.set_page_config(page_title="Colloscope")
 
-# Charger et encoder l'image du logo
-with open("logo_prepa.png", "rb") as img_file:
-    b64_data = base64.b64encode(img_file.read()).decode()
+# Charger et encoder l'image du logo 
+try:
+    with open("logo_prepa.png", "rb") as img_file:
+        b64_data = base64.b64encode(img_file.read()).decode()
+except FileNotFoundError:
+    st.sidebar.error("Le fichier logo_prepa.png n'a pas été trouvé.")
+    st.stop()
 
-# Créer le code HTML pour un logo cliquable qui redirige vers le site désiré
 html_code = f'''
 <a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">
     <img src="data:image/png;base64,{b64_data}" width="150">
 </a>
 '''
 
-# Afficher le logo cliquable dans la sidebar
 st.sidebar.markdown(html_code, unsafe_allow_html=True)
 
 def chemin_ressource(chemin_relatif):
