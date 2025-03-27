@@ -8,7 +8,12 @@ from datetime import datetime
 st.set_page_config(page_title="Colloscope")
 
 st.logo("logo_prepa.png", size='large')
-st.sidebar.markdown(f'<a href="https://sites.google.com/site/cpgetsimarcelsembat/>'f'<img src="logo_prepa.png" width="150"></a>',unsafe_allow_html=True)
+st.sidebar.markdown(
+    '<a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">'
+    '<img src="logo_prepa.png" width="150">'
+    '</a>',
+    unsafe_allow_html=True
+)
 
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
