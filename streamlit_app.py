@@ -4,6 +4,10 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime
 
+
+st.set_page_config(
+    page_title="Colloscope"
+)
 st.logo("logo_prepa.png", size='large')
 st.sidebar.link_button("Site du lycée", "https://sites.google.com/site/cpgetsimarcelsembat/")
 
