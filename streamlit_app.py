@@ -7,13 +7,9 @@ import base64
 
 st.set_page_config(page_title="Colloscope")
 
-# Charger et encoder l'image du logo 
-try:
-    with open("logo_prepa.png", "rb") as img_file:
-        b64_data = base64.b64encode(img_file.read()).decode()
-except FileNotFoundError:
-    st.sidebar.error("Le fichier logo_prepa.png n'a pas été trouvé.")
-    st.stop()
+with open("logo_prepa.png", "rb") as img_file:
+    b64_data = base64.b64encode(img_file.read()).decode()
+
 
 html_code = f'''
 <div style="text-align: center; margin-bottom: 100px;">
