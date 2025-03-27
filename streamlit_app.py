@@ -16,13 +16,14 @@ except FileNotFoundError:
     st.stop()
 
 html_code = f'''
-<div style="text-align: center;">
+<div style="text-align: center; margin-bottom: 30px;">
     <a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">
         <img src="data:image/png;base64,{b64_data}" width="150">
     </a>
 </div>
 '''
 st.sidebar.markdown(html_code, unsafe_allow_html=True)
+
 def chemin_ressource(chemin_relatif):
     """Retourne le chemin vers la ressource"""
     base_path = os.path.abspath(".")
