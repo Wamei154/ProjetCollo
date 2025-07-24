@@ -15,6 +15,22 @@ Ce projet est une application Streamlit permettant de gérer et d'afficher les i
 Ce tutoriel vous guide pour mettre à jour ou modifier les fichiers Excel utilisés par votre application de colloscope Streamlit, vous pouvez prendre exemple avec les fichiers excels déjà existant, il faut que les nouveaux fichier excels soit les mêmes que ceux existant sinon le programme ne fonctionnera pas.
 
 ---
+Suivez ces étapes simples pour transformer votre PDF en Excel :
+
+1.  **Accéder à l'outil iLovePDF :** Ouvrez votre navigateur web et rendez-vous sur la page de conversion PDF vers Excel d'iLovePDF :
+    [https://www.ilovepdf.com/fr/pdf_vers_excel](https://www.ilovepdf.com/fr/pdf_vers_excel)
+
+2.  **Sélectionner votre fichier PDF :**
+    * Cliquez sur le bouton rouge "Sélectionner le fichier PDF".
+    * Une fenêtre s'ouvrira, vous permettant de naviguer sur votre ordinateur. Sélectionnez le fichier PDF que vous souhaitez convertir et cliquez sur "Ouvrir".
+    * Vous pouvez également faire glisser et déposer votre fichier PDF directement dans la zone désignée sur la page web.
+
+3.  **Lancer la conversion :**
+    * Une fois votre fichier PDF téléchargé, cliquez sur le bouton rouge "Convertir en EXCEL" situé en bas à droite de la page.
+
+4.  **Télécharger le fichier Excel :**
+    * Après un court instant, iLovePDF aura converti votre fichier.
+    * Cliquez sur le bouton rouge "Télécharger EXCEL" pour enregistrer le fichier `.xlsx` sur votre ordinateur.
 
 ## 📂 **Structure des fichiers Excel**
 ### **1. Fichiers nécessaires :**
