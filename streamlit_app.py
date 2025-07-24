@@ -88,29 +88,30 @@ def to_naive(dt):
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
     vacances_valides = []
     for start, end in vacances:
-        if not (isinstance(start, datetime) and isinstance(end, datetime)):
-            st.write(f"Valeurs invalides dans vacances : start={start} ({type(start)}), end={end} ({type(end)})")
-        else:
+        if isinstance(start, datetime) and isinstance(end, datetime):
             vacances_valides.append((to_naive(start), to_naive(end)))
 
-    st.write("vacances_valides :", vacances_valides)
-    st.write("Types de vacances_valides :", [(type(s), type(e)) for s, e in vacances_valides])
-
     current = to_naive(date_debut)
-    date_actuelle_naive = to_naive(date_actuelle)
+    date_actuelle_naive = to_naive(date_actuelle.replace(hour=0, minute=0, second=0, microsecond=0))
     semaines_utiles = 0
 
+    lundis_info = []
+
     while current <= date_actuelle_naive:
-        try:
+        if current.weekday() == 0:  # Lundi
             in_vacances = any(start <= current <= end for start, end in vacances_valides)
-        except Exception as e:
-            st.write(f"Erreur lors du test de vacances pour la date {current}: {e}")
-            raise
-        if not in_vacances and current.weekday() == 0:  # lundi
-            semaines_utiles += 1
+            lundis_info.append((current.strftime("%d/%m/%Y"), "vacances" if in_vacances else "semaine utile"))
+            if not in_vacances:
+                semaines_utiles += 1
         current += timedelta(days=1)
 
+    # Affichage des lundis analysés
+    st.write("### Lundis analysés :")
+    for date_str, statut in lundis_info:
+        st.write(f"- {date_str} : {statut}")
+
     return semaines_utiles
+
 
 def enregistrer_parametres(groupe, semaine, classe):
     with open('config.txt', 'w') as fichier:
@@ -222,6 +223,7 @@ def principal():
     date_debut = datetime.strptime("16/09/2024", "%d/%m/%Y")
     date_actuelle = datetime.now()
     vacances = obtenir_vacances(zone="C", annee="2024-2025")
+    date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle, vacances)
     date_actuelle_str = date_actuelle.strftime("%d/%m")
 
