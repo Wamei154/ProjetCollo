@@ -72,12 +72,3 @@ Ce tutoriel vous guide pour mettre à jour ou modifier les fichiers Excel utilis
 
 ---
 
-### Étape 3 : Mettez à jour les données
-- **Ajouter un groupe :** Ajoutez une nouvelle ligne dans le fichier `Colloscope`. Assurez-vous d’ajouter des clés valides qui existent dans le fichier `Legende`.
-- **Ajouter une légende :** Ajoutez une nouvelle ligne dans le fichier `Legende` avec une clé unique et ses détails.
-
----
-
-### Étape 4 : Sauvegardez les fichiers
-1. Cliquez sur **Fichier** > **Enregistrer sous**.
-2. **IMPORTANT :** Conservez le format `.xlsx` et ne changez pas le nom du fichier.
