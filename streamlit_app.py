@@ -232,7 +232,7 @@ def principal():
     date_actuelle_str = date_actuelle.strftime("%d/%m")
 
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
-    st.sidebar.write(f"**N° semaine acutelle** :  {semaine_default}")
+    st.sidebar.write(f"**N° semaine acutelle** :  {index=int(semaine_default)}")
 
     # Calcul de la semaine actuelle
     semaine_auto = str(min(semaines_ecoulees, 30))  # limite à 30 max
