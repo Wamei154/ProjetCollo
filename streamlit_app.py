@@ -80,21 +80,27 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
 
     return vacances
 
+def to_naive(dt):
+    if dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
+
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
     vacances_valides = []
     for start, end in vacances:
         if not (isinstance(start, datetime) and isinstance(end, datetime)):
             st.write(f"Valeurs invalides dans vacances : start={start} ({type(start)}), end={end} ({type(end)})")
         else:
-            vacances_valides.append((start, end))
+            vacances_valides.append((to_naive(start), to_naive(end)))
 
     st.write("vacances_valides :", vacances_valides)
     st.write("Types de vacances_valides :", [(type(s), type(e)) for s, e in vacances_valides])
 
-    current = date_debut
+    current = to_naive(date_debut)
+    date_actuelle_naive = to_naive(date_actuelle)
     semaines_utiles = 0
 
-    while current <= date_actuelle:
+    while current <= date_actuelle_naive:
         try:
             in_vacances = any(start <= current <= end for start, end in vacances_valides)
         except Exception as e:
@@ -105,7 +111,6 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
         current += timedelta(days=1)
 
     return semaines_utiles
-
 
 def enregistrer_parametres(groupe, semaine, classe):
     with open('config.txt', 'w') as fichier:
