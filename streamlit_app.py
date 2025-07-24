@@ -23,7 +23,6 @@ def aplatir_liste(liste_imbriquee):
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
 @st.cache_data
-
 def extract_date(cell_str, year):
     match = re.search(r'\((\d{2}/\d{2})\)', cell_str)
     if match:
@@ -58,9 +57,14 @@ def charger_donnees(classe, annee_scolaire=2024):
 
     # Récupération des dates des semaines (dans la première ligne, à partir de la 2e colonne)
     dates_semaines = []
+    # MODIFICATION : On commence à lire les cellules à partir de la colonne B (index 1), pas la colonne A (index 0)
+    # Et on s'assure que la cellule a une valeur avant de tenter d'extraire la date
     for cell in feuille_colloscope[1][1:]:  # ligne 1, colonnes 2 à la fin (openpyxl index 0-based)
-        date_extrait = extract_date(str(cell.value), annee_scolaire)
-        dates_semaines.append(date_extrait)
+        if cell.value: # Vérifie si la cellule n'est pas vide
+            date_extrait = extract_date(str(cell.value), annee_scolaire)
+            dates_semaines.append(date_extrait)
+        else:
+            dates_semaines.append(None) # Ajoute None si la cellule est vide
 
     # Lecture des données par groupe
     for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
@@ -142,12 +146,32 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
 def semaine_actuelle(dates_semaines, date_actuelle=None):
     if date_actuelle is None:
         date_actuelle = datetime.now()
-    for i, date_semaine in enumerate(dates_semaines):
-        if date_semaine is None:
+    
+    # Trouver le lundi de la semaine actuelle
+    current_weekday = date_actuelle.weekday() # Lundi est 0, Dimanche est 6
+    if current_weekday != 0: # Si ce n'est pas lundi, remonter au lundi précédent
+        date_du_lundi_actuel = date_actuelle - timedelta(days=current_weekday)
+    else: # Si c'est déjà lundi
+        date_du_lundi_actuel = date_actuelle
+
+    # Réinitialiser l'heure pour la comparaison
+    date_du_lundi_actuel = date_du_lundi_actuel.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    for i, date_semaine_excel in enumerate(dates_semaines):
+        if date_semaine_excel is None:
             continue
-        # Si la date de la semaine est après la date actuelle, on retourne la semaine précédente
-        if date_semaine > date_actuelle:
-            return max(i, 1)
+        
+        # Le lundi de la semaine de l'excel
+        lundi_excel = date_semaine_excel.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Comparer le lundi de la semaine actuelle avec le lundi de la semaine de l'excel
+        # On considère que la semaine actuelle est celle dont le lundi est le plus proche
+        # et n'est pas encore passée (ou est le lundi même)
+        if lundi_excel >= date_du_lundi_actuel:
+            return i + 1 # Retourne le numéro de la semaine (1-basé)
+    
+    # Si on arrive ici, cela signifie que la date actuelle est après toutes les dates des semaines dans Excel
+    # Retourne la dernière semaine disponible dans l'Excel
     return len(dates_semaines)
 
 def enregistrer_parametres(groupe, semaine, classe):
@@ -157,8 +181,14 @@ def enregistrer_parametres(groupe, semaine, classe):
 def charger_parametres():
     groupe = "G1"
     classe = "1"
-    vacances = obtenir_vacances()
-    semaine = str(calculer_semaines_ecoulees(datetime.strptime("16/09/2024", "%d/%m/%Y"), datetime.now(), vacances))
+    
+    # Initialisation de la semaine par défaut en utilisant une valeur auto temporaire,
+    # qui sera mise à jour après le chargement des données.
+    # Ceci est fait pour que charger_parametres ne dépende pas directement de charger_donnees
+    # et éviter un cycle de dépendance si charger_donnees est appelée avant
+    # que les fichiers nécessaires soient en place.
+    semaine = "1" 
+
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
@@ -184,7 +214,10 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
 
         for k in range(len(ligne)):
             if ligne[k] not in dictionnaire_legende:
-                raise KeyError(f"La clé '{ligne[k]}' n'existe pas dans les données de légende.")
+                # Ajout pour gérer les cas où la clé n'existe pas dans la légende,
+                # on peut par exemple ajouter une entrée par défaut ou ignorer.
+                # Pour cet exemple, nous allons ignorer et passer à la suivante.
+                continue 
 
             elements_assembles = aplatir_liste(dictionnaire_legende[ligne[k]])
             matiere = "Non spécifié"
@@ -242,7 +275,7 @@ def afficher_donnees():
         st.error("Veuillez entrer un Groupe valide entre 1 et 20.")
         return
 
-    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe) # MODIF : On ne se sert pas de dates_semaines
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe) 
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
@@ -257,10 +290,15 @@ def principal():
 
     st.sidebar.header("Sélection")
 
-    date_debut = datetime.strptime("16/09/2024", "%d/%m/%Y")
     date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    vacances = obtenir_vacances(zone="C", annee="2024-2025")
-    semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle, vacances)
+    
+    # Charger les données pour obtenir les dates des semaines depuis Excel
+    # On utilise la classe par défaut pour charger les dates initiales
+    _, _, dates_semaines = charger_donnees(classe="1") 
+    
+    # Calculer la semaine actuelle en utilisant les dates de l'Excel
+    semaines_ecoulees = semaine_actuelle(dates_semaines, date_actuelle)
+    
     date_actuelle_str = date_actuelle.strftime("%d/%m")
 
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
@@ -276,19 +314,19 @@ def principal():
     semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
 
     # Interface utilisateur
-    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1)
-    groupe = st.sidebar.text_input("Groupe", value=groupe_default)
-    semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1)
+    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
+    groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
+    semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
 
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher"):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-    if cols[1].button("◀"): # MODIFICATION : Changement des icônes pour compatibilité
+    if cols[1].button("◀"):
         changer_semaine(-1)
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-    if cols[2].button("▶"): # MODIFICATION : Changement des icônes pour compatibilité
+    if cols[2].button("▶"):
         changer_semaine(1)
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
@@ -301,7 +339,6 @@ def principal():
     """,
     unsafe_allow_html=True
     )
-
 
     # Sauvegarder dans session_state pour usage ailleurs dans l'app
     st.session_state.groupe = groupe
