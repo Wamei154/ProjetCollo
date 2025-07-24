@@ -233,11 +233,19 @@ def principal():
 
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
 
-    groupe_default, semaine_default, classe_default = charger_parametres()
+    # Calcul de la semaine actuelle
+    semaine_auto = str(min(semaines_ecoulees, 30))  # limite à 30 max
 
+    # Charger les paramètres utilisateur s'ils existent
+    groupe_default, semaine_saved, classe_default = charger_parametres()
+
+    # Si l'utilisateur n'a pas modifié la semaine, on prend celle auto
+    semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
+
+    # Interface utilisateur
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1)
     groupe = st.sidebar.text_input("Groupe", value=groupe_default)
-    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=min(semaines_ecoulees - 1, 29))
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(semaine_default) - 1)
 
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher", on_click=afficher_donnees):
