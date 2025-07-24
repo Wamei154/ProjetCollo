@@ -50,11 +50,12 @@ def charger_donnees(classe):
     return dictionnaire_donnees, dictionnaire_legende
 
 @st.cache_data
-def obtenir_vacances(zone="B", annee="2024-2025"):
+@st.cache_data
+def obtenir_vacances(zone="C", annee="2024-2025"):
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
         "dataset": "fr-en-calendrier-scolaire",
-        "rows": 100,
+        "rows": 500,
         "refine.zone": f"Zone {zone}",
         "refine.annee_scolaire": annee,
     }
@@ -74,11 +75,16 @@ def obtenir_vacances(zone="B", annee="2024-2025"):
                     vacances.append((debut, fin))
                 except:
                     pass
+
+        # 🔒 On enlève les vacances d'été trop longues
+        vacances = [(start, end) for start, end in vacances if end < datetime(2024, 9, 16) or start > datetime(2024, 9, 2)]
+
     except Exception as e:
-        print("Erreur récupération vacances :", e)
+        st.error(f"Erreur récupération vacances : {e}")
         vacances = []
 
     return vacances
+
 
 def to_naive(dt):
     if dt.tzinfo is not None:
