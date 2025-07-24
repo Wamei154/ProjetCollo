@@ -51,7 +51,6 @@ def charger_donnees(classe):
 
 @st.cache_data
 def obtenir_vacances(zone="C", annee="2024-2025"):
-    """Récupère automatiquement les vacances scolaires depuis l'API de l'Éducation Nationale"""
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
         "dataset": "fr-en-calendrier-scolaire",
@@ -59,29 +58,24 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
         "refine.zone": f"Zone {zone}",
         "refine.annee_scolaire": annee,
     }
-
     vacances = []
-
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-
         for record in data["records"]:
-            champs = record.get("fields", {})
-            start_str = champs.get("start_date")
-            end_str = champs.get("end_date")
-
+            fields = record.get("fields", {})
+            start_str = fields.get("start_date")
+            end_str = fields.get("end_date")
             if start_str and end_str:
                 try:
                     debut = datetime.fromisoformat(start_str)
                     fin = datetime.fromisoformat(end_str)
                     vacances.append((debut, fin))
-                except ValueError:
-                    continue  # ignore formats invalides
-
+                except:
+                    pass
     except Exception as e:
-        st.warning(f"Impossible de récupérer les vacances en ligne : {e}")
+        print("Erreur récupération vacances :", e)
         vacances = []
 
     return vacances
