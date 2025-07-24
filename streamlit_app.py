@@ -6,6 +6,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import base64
 import re
+from dateutil import parser
+
 
 st.set_page_config(page_title="Colloscope")
 
