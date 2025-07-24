@@ -86,7 +86,7 @@ def to_naive(dt):
     return dt
 
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
-    date_fin_annee = datetime(2025, 7, 7)
+    date_fin_annee = datetime(2025, 7, 4)
 
     vacances_valides = []
     for start, end in vacances:
