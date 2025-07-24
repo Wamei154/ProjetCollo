@@ -201,7 +201,7 @@ def changer_semaine(sens):
         if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
-def afficher_donnees():
+def afficher_donnees_colloscope(): # Renommée pour être plus spécifique
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
@@ -254,15 +254,15 @@ def afficher_dictionnaires_secrets(classe_selectionnee):
     except Exception as e:
         st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
 
-def gerer_outils_debug(classe_selectionnee):
+def gerer_outils_debug(classe_selectionnee): # Nom de fonction corrigé ici
     st.subheader("Outils de débogage")
     
-    if st.button("Recharger les données (Colloscope/Légende)", key="reload_data_btn"):
+    if st.button("Recharger les données (Colloscope/Légende)", key="reload_data_btn_debug"):
         st.cache_data.clear()
         st.success("Cache des données vidé. Les fichiers Excel seront relus au prochain accès.")
         st.rerun()
 
-    if st.button("Vider tout le cache Streamlit", key="clear_all_cache_btn"):
+    if st.button("Vider tout le cache Streamlit", key="clear_all_cache_btn_debug"):
         st.cache_data.clear()
         st.cache_resource.clear()
         st.success("Tout le cache Streamlit a été vidé.")
@@ -283,7 +283,7 @@ def debug_dialog():
         if code_secret_input == CODE_PROPRIETAIRE:
             st.session_state["authenticated_owner"] = True
             st.success("Accès accordé !")
-            st.rerun() # Rafraîchir pour afficher les outils
+            st.rerun() 
         else:
             st.error("Code incorrect.")
             st.session_state["authenticated_owner"] = False
@@ -296,66 +296,78 @@ def principal():
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
-    st.sidebar.header("Sélection")
-
-    date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    _, _, dates_semaines_initiales = charger_donnees(classe="1") 
-    
-    semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
-    
-    date_actuelle_str = date_actuelle.strftime("%d/%m")
-
-    st.sidebar.write(f"**Date** :  {date_actuelle_str}")
-    st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
-
-    semaine_auto = str(min(semaines_ecoulees, 30))
-
-    groupe_default, semaine_saved, classe_default = charger_parametres()
-
-    semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
-
-    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
-    groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
-    semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
-
-    cols = st.sidebar.columns(3)
-    if cols[0].button("Afficher", key="afficher_btn"):
-        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-        afficher_donnees()
-    if cols[1].button("◀", key="prev_semaine_btn"):
-        changer_semaine(-1)
-        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-        afficher_donnees()
-    if cols[2].button("▶", key="next_semaine_btn"):
-        changer_semaine(1)
-        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-        afficher_donnees()
-
     # --- Accès Propriétaire via Dialogue ---
     st.sidebar.markdown("---")
     if st.sidebar.button("Accès Propriétaire", key="owner_access_btn"):
         debug_dialog() # Ouvre la boîte de dialogue
 
-    # Afficher les outils de débogage si authentifié
+    # Ajouter le bouton de déconnexion si l'utilisateur est authentifié
     if st.session_state.get("authenticated_owner", False):
         st.sidebar.markdown("---")
-        st.sidebar.subheader("Outils Propriétaire Actifs")
+        st.sidebar.subheader("Outils Propriétaire") # J'ai changé le titre pour être plus simple
         if st.sidebar.button("Déconnexion", key="owner_logout_btn"):
             st.session_state["authenticated_owner"] = False
             st.rerun() # Rafraîchir pour masquer les outils
 
-        # Onglets pour les outils de débogage
-        st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
+    # Définition des onglets principaux de l'application
+    # Le deuxième onglet "Outils Propriétaire" est conditionnel
+    tabs_names = ["Colloscope"]
+    if st.session_state.get("authenticated_owner", False):
+        tabs_names.append("Outils Propriétaire")
+    
+    main_tabs = st.tabs(tabs_names)
 
-        with st_debug_tabs[0]:
-            if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
-                afficher_dictionnaires_secrets(classe)
+    # Contenu de l'onglet "Colloscope" (toujours visible)
+    with main_tabs[0]:
+        st.header("Colloscope")
+        st.sidebar.header("Sélection")
+
+        date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        with st_debug_tabs[1]:
-            gerer_outils_debug(classe) # Correction : nom de fonction 'gerer_outils_debug'
-    # --- Fin Accès Propriétaire ---
+        _, _, dates_semaines_initiales = charger_donnees(classe="1") 
+        
+        semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
+        
+        date_actuelle_str = date_actuelle.strftime("%d/%m")
 
+        st.sidebar.write(f"**Date** :  {date_actuelle_str}")
+        st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
+
+        semaine_auto = str(min(semaines_ecoulees, 30))
+
+        groupe_default, semaine_saved, classe_default = charger_parametres()
+
+        semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
+
+        classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
+        groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
+        semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
+
+        cols = st.sidebar.columns(3)
+        if cols[0].button("Afficher", key="afficher_btn"):
+            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+            afficher_donnees_colloscope() # Appel de la fonction renommée
+        if cols[1].button("◀", key="prev_semaine_btn"):
+            changer_semaine(-1)
+            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+            afficher_donnees_colloscope()
+        if cols[2].button("▶", key="next_semaine_btn"):
+            changer_semaine(1)
+            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+            afficher_donnees_colloscope()
+
+    # Contenu de l'onglet "Outils Propriétaire" (seulement si authentifié)
+    if st.session_state.get("authenticated_owner", False):
+        with main_tabs[1]: # main_tabs[1] sera l'onglet "Outils Propriétaire"
+            # Sous-onglets pour les outils de débogage
+            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
+
+            with st_debug_tabs[0]:
+                if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
+                    afficher_dictionnaires_secrets(classe)
+            
+            with st_debug_tabs[1]:
+                gerer_outils_debug(classe)
 
     # Pied de page (Footer)
     st.markdown(
