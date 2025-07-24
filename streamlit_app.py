@@ -1,61 +1,28 @@
 import os
 import streamlit as st
+import requests
 from openpyxl import load_workbook
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 import base64
-import requests
 
 st.set_page_config(page_title="Colloscope")
 
 with open("logo_prepa.png", "rb") as img_file:
     b64_data = base64.b64encode(img_file.read()).decode()
 
-
 html_code = f'''<div style="text-align: center; margin-bottom: 80px;"><a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank"><img src="data:image/png;base64,{b64_data}" width="150"></a></div>'''
 st.sidebar.markdown(html_code, unsafe_allow_html=True)
 
 def chemin_ressource(chemin_relatif):
-    """Retourne le chemin vers la ressource"""
     base_path = os.path.abspath(".")
     return os.path.join(base_path, chemin_relatif)
 
-def obtenir_vacances(zone="C", annee="2024-2025"):
-    """Récupère automatiquement les vacances scolaires depuis l'API de l'Éducation Nationale"""
-    url = "https://data.education.gouv.fr/api/records/1.0/search/"
-    params = {
-        "dataset": "fr-en-calendrier-scolaire",
-        "rows": 100,
-        "refine.zone": f"Zone {zone}",
-        "refine.annee_scolaire": annee,
-    }
-
-    vacances = []
-
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        for record in data["records"]:
-            champs = record["fields"]
-            debut = datetime.strptime(champs["start_date"], "%Y-%m-%d")
-            fin = datetime.strptime(champs["end_date"], "%Y-%m-%d")
-            vacances.append((debut, fin))
-    except Exception as e:
-        st.warning(f"Impossible de récupérer les vacances en ligne : {e}")
-        # Tu peux ici renvoyer une liste vide ou une valeur par défaut
-        vacances = []
-
-    return vacances
-
 def aplatir_liste(liste_imbriquee):
-    """Aplatis la liste"""
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
-
 
 @st.cache_data
 def charger_donnees(classe):
-    """Charge les données des fichiers Excel selon la classe sélectionnée"""
     fichier_colloscope = chemin_ressource(f'Colloscope{classe}.xlsx')
     fichier_legende = chemin_ressource(f'Legende{classe}.xlsx')
 
@@ -82,26 +49,54 @@ def charger_donnees(classe):
 
     return dictionnaire_donnees, dictionnaire_legende
 
+@st.cache_data
+def obtenir_vacances(zone="C", annee="2024-2025"):
+    url = "https://data.education.gouv.fr/api/records/1.0/search/"
+    params = {
+        "dataset": "fr-en-calendrier-scolaire",
+        "rows": 100,
+        "refine.zone": f"Zone {zone}",
+        "refine.annee_scolaire": annee,
+    }
 
-def obtenir_semaine_actuelle():
-    """Retourne la semaine actuelle (max 30)"""
-    maintenant = datetime.now()
-    semaine_actuelle = maintenant.isocalendar()[1]
-    return min(semaine_actuelle, 30)
+    vacances = []
 
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        for record in data["records"]:
+            champs = record["fields"]
+            debut = datetime.fromisoformat(champs["start_date"])
+            fin = datetime.fromisoformat(champs["end_date"])
+            vacances.append((debut, fin))
+    except Exception as e:
+        st.warning(f"Impossible de récupérer les vacances en ligne : {e}")
+        vacances = []
+
+    return vacances
+
+def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
+    current = date_debut
+    semaines_utiles = 0
+
+    while current <= date_actuelle:
+        in_vacances = any(start <= current <= end for start, end in vacances)
+        if not in_vacances and current.weekday() == 0:
+            semaines_utiles += 1
+        current += timedelta(days=1)
+
+    return semaines_utiles
 
 def enregistrer_parametres(groupe, semaine, classe):
-    """Enregistre les paramètres dans un fichier de configuration"""
     with open('config.txt', 'w') as fichier:
         fichier.write(f"{groupe}\n{semaine}\n{classe}")
 
-
 def charger_parametres():
-    """Charge les paramètres depuis le fichier de configuration"""
     groupe = "G1"
-    vacances = obtenir_vacances(zone="C", annee="2024-2025")
+    classe = "1"
+    vacances = obtenir_vacances()
     semaine = str(calculer_semaines_ecoulees(datetime.strptime("16/09/2024", "%d/%m/%Y"), datetime.now(), vacances))
-    classe = "1"  # Classe par défaut
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
@@ -111,37 +106,26 @@ def charger_parametres():
                 classe = lignes[2].strip()
     return groupe, semaine, classe
 
-
 def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
-    """Génère les données pour un groupe et une semaine donnés"""
     tableau = []
 
     try:
-        # Vérification de la présence du groupe dans dictionnaire_donnees
         if groupe not in dictionnaire_donnees:
             raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
 
-        # Convertir 'semaine' en entier pour éviter l'erreur de type
         semaine = int(semaine)
 
-        # Vérification que l'index de la semaine est valide
         if semaine - 1 >= len(dictionnaire_donnees[groupe]) or semaine - 1 < 0:
             raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
 
-        # Accès aux données de la semaine spécifiée
         ligne = dictionnaire_donnees[groupe][semaine - 1]
 
-        # Boucle pour assembler les éléments
         for k in range(len(ligne)):
-            # Vérification de la clé dans dictionnaire_legende
             if ligne[k] not in dictionnaire_legende:
                 raise KeyError(f"La clé '{ligne[k]}' n'existe pas dans les données de légende.")
 
-            # Assemble la ligne
             elements_assembles = aplatir_liste(dictionnaire_legende[ligne[k]])
-
-            # Gère les lettres spécifiques pour assigner les matières
-            matiere = "Non spécifié"  # Valeur par défaut
+            matiere = "Non spécifié"
 
             if ligne[k].startswith('M'):
                 matiere = "Mathématiques"
@@ -155,49 +139,23 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
                 matiere = "Informatique"
             elif ligne[k].startswith('P'):
                 matiere = "Physique"
-            # Ajouter d'autres conditions pour d'autres matières si nécessaire
 
-            # Ajoute la colonne Matière à la ligne
             elements_assembles.append(matiere)
             tableau.append(elements_assembles)
 
-    except KeyError as erreur:
+    except (KeyError, IndexError, Exception) as erreur:
         st.error(str(erreur))
-        return tableau
-
-    except IndexError as erreur:
-        st.error(str(erreur))
-        return tableau
-
-    except Exception as erreur:
-        st.error(f"Une erreur inattendue s'est produite : {str(erreur)}")
         return tableau
 
     return tableau
 
-
-def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
-    """Calcule les semaines écoulées depuis la rentrée, hors vacances"""
-    current = date_debut
-    semaines_utiles = 0
-
-    while current <= date_actuelle:
-        in_vacances = any(start <= current <= end for start, end in vacances)
-        if not in_vacances and current.weekday() == 0:  # lundi
-            semaines_utiles += 1
-        current += timedelta(days=1)
-
-    return semaines_utiles
-
 def changer_semaine(sens):
-    """Modifie la semaine en fonction du bouton pressé"""
     if "semaine" in st.session_state:
         nouvelle_semaine = int(st.session_state.semaine) + sens
         if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
 def afficher_donnees():
-    """Affiche les données dans un tableau"""
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
@@ -222,20 +180,15 @@ def afficher_donnees():
         st.error("Veuillez entrer un Groupe valide entre 1 et 20.")
         return
 
-
     dictionnaire_donnees, dictionnaire_legende = charger_donnees(classe)
-
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
-    # Colonnes mises à jour pour inclure la Matière
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
     df.index = ['' for _ in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
 
-
 def principal():
-    """Fonction principale de l'application """
     if st.sidebar.button('EDT EPS'):
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
@@ -244,14 +197,16 @@ def principal():
 
     date_debut = datetime.strptime("16/09/2024", "%d/%m/%Y")
     date_actuelle = datetime.now()
-
     vacances = obtenir_vacances(zone="C", annee="2024-2025")
     semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle, vacances)
+    date_actuelle_str = date_actuelle.strftime("%d/%m")
 
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
 
-    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
-    groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
+    groupe_default, semaine_default, classe_default = charger_parametres()
+
+    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1)
+    groupe = st.sidebar.text_input("Groupe", value=groupe_default)
     semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=min(semaines_ecoulees - 1, 29))
 
     cols = st.sidebar.columns(3)
@@ -276,7 +231,6 @@ def principal():
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe
-
 
 if __name__ == "__main__":
     principal()
