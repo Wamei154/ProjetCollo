@@ -51,6 +51,7 @@ def charger_donnees(classe):
 
 @st.cache_data
 def obtenir_vacances(zone="C", annee="2024-2025"):
+    """Récupère automatiquement les vacances scolaires depuis l'API de l'Éducation Nationale"""
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
         "dataset": "fr-en-calendrier-scolaire",
@@ -65,11 +66,20 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
+
         for record in data["records"]:
-            champs = record["fields"]
-            debut = datetime.fromisoformat(champs["start_date"])
-            fin = datetime.fromisoformat(champs["end_date"])
-            vacances.append((debut, fin))
+            champs = record.get("fields", {})
+            start_str = champs.get("start_date")
+            end_str = champs.get("end_date")
+
+            if start_str and end_str:
+                try:
+                    debut = datetime.fromisoformat(start_str)
+                    fin = datetime.fromisoformat(end_str)
+                    vacances.append((debut, fin))
+                except ValueError:
+                    continue  # ignore formats invalides
+
     except Exception as e:
         st.warning(f"Impossible de récupérer les vacances en ligne : {e}")
         vacances = []
@@ -82,7 +92,7 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
 
     while current <= date_actuelle:
         in_vacances = any(start <= current <= end for start, end in vacances)
-        if not in_vacances and current.weekday() == 0:
+        if not in_vacances and current.weekday() == 0:  # lundi
             semaines_utiles += 1
         current += timedelta(days=1)
 
