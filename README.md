@@ -56,6 +56,9 @@ Suivez ces étapes simples pour transformer votre PDF en Excel :
 | M1      | ......         | Lundi    | 8h-10h    | Salle 101 |
 | SI1     | ......         | Mardi    | 10h-12h   | Salle 202 |
 
+pour la mise en forme du excel Legende, il faudra supprimer beaucoup de chose:
+  - aligner tout dans les memes colonnes
+  - créer un nouvelle colonne a coté du jours pour pouvoir séparer la jours de l'heure, pour se faire (sur Excel) il faut séléctionner la colonne, aller dans "Donnée", "Convertir", "Délimitée", séléctionner "Espace" et "Terminer"
 
 ---
 
