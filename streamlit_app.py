@@ -48,20 +48,17 @@ def charger_donnees(classe, annee_scolaire=2024):
     dictionnaire_donnees = {}
     dictionnaire_legende = {}
 
-    # Récupération des dates des semaines (dans la première ligne, à partir de la 2e colonne)
     dates_semaines = []
-    for cell in feuille_colloscope[1][1:]:  # ligne 1, colonnes 2 à la fin (openpyxl index 0-based)
+    for cell in feuille_colloscope[1][1:]:
         date_extrait = extract_date(str(cell.value), annee_scolaire)
         dates_semaines.append(date_extrait)
 
-    # Lecture des données par groupe
     for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
         cle = ligne[0]
         valeurs = ligne[1:]
         valeurs = [v.split() if v is not None else [] for v in valeurs]
         dictionnaire_donnees[cle] = valeurs
 
-    # Lecture légende
     for ligne in feuille_legende.iter_rows(min_row=2, values_only=True):
         cle_legende = ligne[0]
         valeurs_legende = ligne[1:]
@@ -94,32 +91,58 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
                     vacances.append((debut, fin))
                 except:
                     pass
-
-        # 🔒 On enlève les vacances d'été trop longues
         vacances = [(start, end) for start, end in vacances if end < datetime(2024, 9, 16) or start > datetime(2024, 9, 2)]
-
     except Exception as e:
         st.error(f"Erreur récupération vacances : {e}")
         vacances = []
-
     return vacances
 
+def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
+    semaines = 0
+    current_date = date_debut
+    while current_date <= date_actuelle:
+        est_vacances = False
+        for debut, fin in vacances:
+            if debut <= current_date <= fin:
+                est_vacances = True
+                break
+        if not est_vacances:
+            semaines += 1 if current_date.weekday() == 0 else 0
+        current_date += timedelta(days=1)
+    return max(1, semaines)
 
-def to_naive(dt):
-    if dt.tzinfo is not None:
-        return dt.replace(tzinfo=None)
-    return dt
-
-def semaine_actuelle(dates_semaines, date_actuelle=None):
-    if date_actuelle is None:
-        date_actuelle = datetime.now()
-    for i, date_semaine in enumerate(dates_semaines):
-        if date_semaine is None:
-            continue
-        # Si la date de la semaine est après la date actuelle, on retourne la semaine précédente
-        if date_semaine > date_actuelle:
-            return max(i, 1)
-    return len(dates_semaines)
+def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
+    tableau = []
+    try:
+        if groupe not in dictionnaire_donnees:
+            raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
+        semaine = int(semaine)
+        if semaine - 1 >= len(dictionnaire_donnees[groupe]) or semaine - 1 < 0:
+            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
+        ligne = dictionnaire_donnees[groupe][semaine - 1]
+        for k in range(len(ligne)):
+            if ligne[k] not in dictionnaire_legende:
+                raise KeyError(f"La clé '{ligne[k]}' n'existe pas dans les données de légende.")
+            elements_assembles = aplatir_liste(dictionnaire_legende[ligne[k]])
+            matiere = "Non spécifié"
+            if ligne[k].startswith('M'):
+                matiere = "Mathématiques"
+            elif ligne[k].startswith('A'):
+                matiere = "Anglais"
+            elif ligne[k].startswith('SI'):
+                matiere = "Sciences de l'Ingénieur"
+            elif ligne[k].startswith('F'):
+                matiere = "Français"
+            elif ligne[k].startswith('I'):
+                matiere = "Informatique"
+            elif ligne[k].startswith('P'):
+                matiere = "Physique"
+            elements_assembles.append(matiere)
+            tableau.append(elements_assembles)
+    except (KeyError, IndexError, Exception) as erreur:
+        st.error(str(erreur))
+        return tableau
+    return tableau
 
 def enregistrer_parametres(groupe, semaine, classe):
     with open('config.txt', 'w') as fichier:
@@ -139,49 +162,6 @@ def charger_parametres():
                 classe = lignes[2].strip()
     return groupe, semaine, classe
 
-def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
-    tableau = []
-
-    try:
-        if groupe not in dictionnaire_donnees:
-            raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
-
-        semaine = int(semaine)
-
-        if semaine - 1 >= len(dictionnaire_donnees[groupe]) or semaine - 1 < 0:
-            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
-
-        ligne = dictionnaire_donnees[groupe][semaine - 1]
-
-        for k in range(len(ligne)):
-            if ligne[k] not in dictionnaire_legende:
-                raise KeyError(f"La clé '{ligne[k]}' n'existe pas dans les données de légende.")
-
-            elements_assembles = aplatir_liste(dictionnaire_legende[ligne[k]])
-            matiere = "Non spécifié"
-
-            if ligne[k].startswith('M'):
-                matiere = "Mathématiques"
-            elif ligne[k].startswith('A'):
-                matiere = "Anglais"
-            elif ligne[k].startswith('SI'):
-                matiere = "Sciences de l'Ingénieur"
-            elif ligne[k].startswith('F'):
-                matiere = "Français"
-            elif ligne[k].startswith('I'):
-                matiere = "Informatique"
-            elif ligne[k].startswith('P'):
-                matiere = "Physique"
-
-            elements_assembles.append(matiere)
-            tableau.append(elements_assembles)
-
-    except (KeyError, IndexError, Exception) as erreur:
-        st.error(str(erreur))
-        return tableau
-
-    return tableau
-
 def changer_semaine(sens):
     if "semaine" in st.session_state:
         nouvelle_semaine = int(st.session_state.semaine) + sens
@@ -192,9 +172,7 @@ def afficher_donnees():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
-
     enregistrer_parametres(groupe, semaine, classe)
-
     try:
         semaine = int(semaine)
         if semaine < 1 or semaine > 30:
@@ -203,7 +181,6 @@ def afficher_donnees():
     except ValueError:
         st.error("Veuillez entrer une Semaine valide entre 1 et 30.")
         return
-
     try:
         numero_groupe = int(groupe[1:])
         if numero_groupe < 0 or numero_groupe > 20:
@@ -212,13 +189,10 @@ def afficher_donnees():
     except ValueError:
         st.error("Veuillez entrer un Groupe valide entre 1 et 20.")
         return
-
-    dictionnaire_donnees, dictionnaire_legende = charger_donnees(classe)
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe)
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
-
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
     df.index = ['' for _ in range(len(df))]
-
     st.table(df.style.hide(axis='index'))
 
 def principal():
@@ -237,23 +211,13 @@ def principal():
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
     st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
 
-    # Calcul de la semaine actuelle par défaut (limité à 30 max)
     semaine_auto = str(min(semaines_ecoulees, 30))
-
-    # Charger les paramètres utilisateur s'ils existent
     groupe_default, semaine_saved, classe_default = charger_parametres()
-
-    # Si l'utilisateur n'a pas modifié la semaine (pas de fichier config), on prend celle auto
     semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
 
-    # Interface utilisateur
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1)
     groupe = st.sidebar.text_input("Groupe", value=groupe_default)
-    semaine = st.sidebar.selectbox(
-        "Semaine",
-        options=[str(i) for i in range(1, 31)],
-        index=int(semaine_default) - 1
-    )
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(semaine_default) - 1)
 
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher"):
@@ -268,16 +232,12 @@ def principal():
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
 
-    st.markdown(
-        """
+    st.markdown("""
         <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px; text-align: center;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    """, unsafe_allow_html=True)
 
-    # Sauvegarder dans session_state pour usage ailleurs dans l'app
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe
