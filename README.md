@@ -26,7 +26,7 @@ Suivez ces étapes simples pour transformer votre PDF en Excel :
     * Vous pouvez également faire glisser et déposer votre fichier PDF directement dans la zone désignée sur la page web.
 
 3.  **Lancer la conversion :**
-    * Une fois votre fichier PDF téléchargé, cliquez sur le bouton rouge "Convertir en EXCEL" situé en bas à droite de la page.
+    * Une fois votre fichier PDF téléchargé, cliquez sur "Une feuille" dans "Mise en Page" puis le bouton rouge "Convertir en EXCEL" situé en bas à droite de la page.
 
 4.  **Télécharger le fichier Excel :**
     * Après un court instant, iLovePDF aura converti votre fichier.
