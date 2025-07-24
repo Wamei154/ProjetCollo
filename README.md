@@ -44,13 +44,11 @@ Suivez ces étapes simples pour transformer votre PDF en Excel :
 
 ### **2. Format des fichiers :**
 #### **Colloscope\<classe>.xlsx**
-| **Groupe** | **Semaine 1** | **Semaine 2** | **...** | **Semaine N** |
+| **Groupe** | **S1 (XX/XX)** | **S2 (XX/XX)** | **...** | **SN (XX/XX)** |
 |------------|---------------|---------------|---------|---------------|
 | G1         | SI1           | SI2           | ...     | M1            |
 | G2         | M1            | A1            | ...     | F1            |
 
-- **Colonne 1 (Groupe) :** Nom des groupes (ex. G1, G2, etc.).
-- **Colonnes suivantes :** Contiennent les clés correspondant aux entrées dans le fichier légende.
 
 #### **Legende\<classe>.xlsx**
 | **Clé** | **Professeur** | **Jour** | **Heure** | **Salle** |
@@ -58,12 +56,6 @@ Suivez ces étapes simples pour transformer votre PDF en Excel :
 | M1      | ......         | Lundi    | 8h-10h    | Salle 101 |
 | SI1     | ......         | Mardi    | 10h-12h   | Salle 202 |
 
-- **Colonne 1 (Clé) :** Identifiant unique lié à chaque cours.
-- **Colonnes suivantes :** Détails associés à chaque clé :
-  - Professeur
-  - Jour
-  - Heure
-  - Salle
 
 ---
 
@@ -77,14 +69,5 @@ Suivez ces étapes simples pour transformer votre PDF en Excel :
    - `Legende2.xlsx` (TSI2)
 
 2. Si les fichiers n'existent pas ou sont mal placés, l'application affichera une erreur.
-
----
-
-### Étape 2 : Ouvrez les fichiers avec Excel
-1. Double-cliquez sur le fichier que vous voulez modifier.
-2. Assurez-vous de respecter les formats suivants :
-   - Les noms des groupes et des clés doivent être **identiques** dans les deux fichiers.
-   - Ne laissez aucune cellule vide dans les colonnes obligatoires (Groupe, Clé, Professeur, etc.).
-
 ---
 
