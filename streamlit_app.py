@@ -35,7 +35,6 @@ def extract_date(cell_str, year):
             return None
     return None
 
-# MODIFICATION : La fonction to_naive a été déplacée ici (avant obtenir_vacances) pour être accessible
 def to_naive(dt):
     if dt.tzinfo is not None:
         return dt.replace(tzinfo=None)
@@ -55,25 +54,20 @@ def charger_donnees(classe, annee_scolaire=2024):
     dictionnaire_donnees = {}
     dictionnaire_legende = {}
 
-    # Récupération des dates des semaines (dans la première ligne, à partir de la 2e colonne)
     dates_semaines = []
-    # MODIFICATION : On commence à lire les cellules à partir de la colonne B (index 1), pas la colonne A (index 0)
-    # Et on s'assure que la cellule a une valeur avant de tenter d'extraire la date
-    for cell in feuille_colloscope[1][1:]:  # ligne 1, colonnes 2 à la fin (openpyxl index 0-based)
-        if cell.value: # Vérifie si la cellule n'est pas vide
+    for cell in feuille_colloscope[1][1:]:
+        if cell.value:
             date_extrait = extract_date(str(cell.value), annee_scolaire)
             dates_semaines.append(date_extrait)
         else:
-            dates_semaines.append(None) # Ajoute None si la cellule est vide
+            dates_semaines.append(None)
 
-    # Lecture des données par groupe
     for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
         cle = ligne[0]
         valeurs = ligne[1:]
         valeurs = [v.split() if v is not None else [] for v in valeurs]
         dictionnaire_donnees[cle] = valeurs
 
-    # Lecture légende
     for ligne in feuille_legende.iter_rows(min_row=2, values_only=True):
         cle_legende = ligne[0]
         valeurs_legende = ligne[1:]
@@ -107,8 +101,6 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
                 except:
                     pass
 
-        # MODIFICATION : Correction du bug de comparaison de dates en utilisant la fonction to_naive
-        # 🔒 On enlève les vacances d'été trop longues
         vacances = [(start, end) for start, end in vacances if to_naive(end) < datetime(2024, 9, 16) or to_naive(start) > datetime(2024, 9, 2)]
 
     except Exception as e:
@@ -117,9 +109,7 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
 
     return vacances
 
-# AJOUT : Définition de la fonction manquante 'calculer_semaines_ecoulees'
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
-    """Calcule le nombre de semaines scolaires écoulées en ignorant les semaines de vacances."""
     if date_actuelle < date_debut:
         return 1
     
@@ -129,7 +119,6 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
     while jour_courant <= date_actuelle:
         est_en_vacances = False
         for debut_vac, fin_vac in vacances:
-            # On vérifie si le début de la semaine est pendant des vacances
             if to_naive(debut_vac) <= jour_courant < to_naive(fin_vac):
                 est_en_vacances = True
                 break
@@ -137,7 +126,6 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
         if not est_en_vacances:
             semaines_comptees += 1
         
-        # On passe à la semaine suivante
         jour_courant += timedelta(days=7)
         
     return max(1, semaines_comptees)
@@ -147,31 +135,23 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     if date_actuelle is None:
         date_actuelle = datetime.now()
     
-    # Trouver le lundi de la semaine actuelle
-    current_weekday = date_actuelle.weekday() # Lundi est 0, Dimanche est 6
-    if current_weekday != 0: # Si ce n'est pas lundi, remonter au lundi précédent
+    current_weekday = date_actuelle.weekday()
+    if current_weekday != 0:
         date_du_lundi_actuel = date_actuelle - timedelta(days=current_weekday)
-    else: # Si c'est déjà lundi
+    else:
         date_du_lundi_actuel = date_actuelle
 
-    # Réinitialiser l'heure pour la comparaison
     date_du_lundi_actuel = date_du_lundi_actuel.replace(hour=0, minute=0, second=0, microsecond=0)
 
     for i, date_semaine_excel in enumerate(dates_semaines):
         if date_semaine_excel is None:
             continue
         
-        # Le lundi de la semaine de l'excel
         lundi_excel = date_semaine_excel.replace(hour=0, minute=0, second=0, microsecond=0)
 
-        # Comparer le lundi de la semaine actuelle avec le lundi de la semaine de l'excel
-        # On considère que la semaine actuelle est celle dont le lundi est le plus proche
-        # et n'est pas encore passée (ou est le lundi même)
         if lundi_excel >= date_du_lundi_actuel:
-            return i + 1 # Retourne le numéro de la semaine (1-basé)
+            return i + 1
     
-    # Si on arrive ici, cela signifie que la date actuelle est après toutes les dates des semaines dans Excel
-    # Retourne la dernière semaine disponible dans l'Excel
     return len(dates_semaines)
 
 def enregistrer_parametres(groupe, semaine, classe):
@@ -181,12 +161,6 @@ def enregistrer_parametres(groupe, semaine, classe):
 def charger_parametres():
     groupe = "G1"
     classe = "1"
-    
-    # Initialisation de la semaine par défaut en utilisant une valeur auto temporaire,
-    # qui sera mise à jour après le chargement des données.
-    # Ceci est fait pour que charger_parametres ne dépende pas directement de charger_donnees
-    # et éviter un cycle de dépendance si charger_donnees est appelée avant
-    # que les fichiers nécessaires soient en place.
     semaine = "1" 
 
     if os.path.exists('config.txt'):
@@ -214,9 +188,8 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
 
         for k in range(len(ligne)):
             if ligne[k] not in dictionnaire_legende:
-                # Ajout pour gérer les cas où la clé n'existe pas dans la légende,
-                # on peut par exemple ajouter une entrée par défaut ou ignorer.
-                # Pour cet exemple, nous allons ignorer et passer à la suivante.
+                # Si la clé n'existe pas dans la légende, on peut l'ignorer ou ajouter une entrée par défaut.
+                # Pour l'instant, nous ignorons et passons à la clé suivante.
                 continue 
 
             elements_assembles = aplatir_liste(dictionnaire_legende[ligne[k]])
@@ -283,6 +256,29 @@ def afficher_donnees():
 
     st.table(df.style.hide(axis='index'))
 
+
+# --- NOUVELLE FONCTION : Afficher le contenu des dictionnaires pour le propriétaire ---
+def afficher_dictionnaires_secrets(classe_selectionnee):
+    st.subheader("Contenu des dictionnaires (Accès propriétaire)")
+    try:
+        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee)
+        
+        st.write("### Dictionnaire de Données (`dictionnaire_donnees`)")
+        st.json(dictionnaire_donnees) # Affiche le dictionnaire en format JSON
+
+        st.write("### Dictionnaire de Légende (`dictionnaire_legende`)")
+        st.json(dictionnaire_legende)
+
+        st.write("### Dates des Semaines (`dates_semaines`)")
+        # Convertir les objets datetime en chaînes pour un affichage plus clair
+        dates_str = [d.strftime("%d/%m/%Y") if d else "None" for d in dates_semaines]
+        st.write(dates_str)
+
+    except Exception as e:
+        st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
+# --- FIN NOUVELLE FONCTION ---
+
+
 def principal():
     if st.sidebar.button('EDT EPS'):
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
@@ -292,28 +288,22 @@ def principal():
 
     date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Charger les données pour obtenir les dates des semaines depuis Excel
-    # On utilise la classe par défaut pour charger les dates initiales
-    _, _, dates_semaines = charger_donnees(classe="1") 
+    # Charger les données pour obtenir les dates des semaines depuis Excel (pour la classe par défaut)
+    _, _, dates_semaines_initiales = charger_donnees(classe="1") 
     
-    # Calculer la semaine actuelle en utilisant les dates de l'Excel
-    semaines_ecoulees = semaine_actuelle(dates_semaines, date_actuelle)
+    semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
     
     date_actuelle_str = date_actuelle.strftime("%d/%m")
 
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
     st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
 
-    # Calcul de la semaine actuelle par défaut (limité à 30 max)
     semaine_auto = str(min(semaines_ecoulees, 30))
 
-    # Charger les paramètres utilisateur s'ils existent
     groupe_default, semaine_saved, classe_default = charger_parametres()
 
-    # Si l'utilisateur n'a pas modifié la semaine (pas de fichier config), on prend celle auto
     semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
 
-    # Interface utilisateur
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
     groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
     semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
@@ -331,6 +321,23 @@ def principal():
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
 
+    # --- NOUVELLE PARTIE : Bouton d'accès secret pour les dictionnaires ---
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Accès Propriétaire (Debug)")
+    code_secret_input = st.sidebar.text_input("Code secret", type="password", key="secret_code_input")
+
+    # Définissez votre code secret ici
+    # ATTENTION : Pour une vraie application, ne pas le laisser en clair dans le code.
+    # Utilisez une variable d'environnement ou un fichier de configuration sécurisé.
+    CODE_PROPRIETAIRE = "debug123" 
+
+    if code_secret_input == CODE_PROPRIETAIRE:
+        if st.sidebar.button("Afficher les dictionnaires"):
+            afficher_dictionnaires_secrets(classe) # Passe la classe sélectionnée
+    elif code_secret_input: # Si l'utilisateur a entré quelque chose mais ce n'est pas le bon code
+        st.sidebar.error("Code incorrect.")
+    # --- FIN NOUVELLE PARTIE ---
+
     st.markdown(
     """
     <div style="margin-top: 30px; font-size: 10px; text-align: center; color: gray;">
@@ -340,7 +347,6 @@ def principal():
     unsafe_allow_html=True
     )
 
-    # Sauvegarder dans session_state pour usage ailleurs dans l'app
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe
