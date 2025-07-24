@@ -85,7 +85,10 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
     semaines_utiles = 0
 
     while current <= date_actuelle:
-        in_vacances = any(start <= current <= end for start, end in vacances)
+        in_vacances = any(
+            isinstance(start, datetime) and isinstance(end, datetime) and start <= current <= end
+            for start, end in vacances
+        )
         if not in_vacances and current.weekday() == 0:  # lundi
             semaines_utiles += 1
         current += timedelta(days=1)
