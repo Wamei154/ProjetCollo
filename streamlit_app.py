@@ -88,16 +88,24 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
         else:
             vacances_valides.append((start, end))
 
+    st.write("vacances_valides :", vacances_valides)
+    st.write("Types de vacances_valides :", [(type(s), type(e)) for s, e in vacances_valides])
+
     current = date_debut
     semaines_utiles = 0
 
     while current <= date_actuelle:
-        in_vacances = any(start <= current <= end for start, end in vacances_valides)
+        try:
+            in_vacances = any(start <= current <= end for start, end in vacances_valides)
+        except Exception as e:
+            st.write(f"Erreur lors du test de vacances pour la date {current}: {e}")
+            raise
         if not in_vacances and current.weekday() == 0:  # lundi
             semaines_utiles += 1
         current += timedelta(days=1)
 
     return semaines_utiles
+
 
 def enregistrer_parametres(groupe, semaine, classe):
     with open('config.txt', 'w') as fichier:
