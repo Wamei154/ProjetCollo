@@ -86,6 +86,9 @@ def to_naive(dt):
     return dt
 
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
+    # Fixe la fin de l'année scolaire : ici 30 juin 2025
+    date_fin_annee = datetime(2025, 6, 30)
+
     vacances_valides = []
     for start, end in vacances:
         if isinstance(start, datetime) and isinstance(end, datetime):
@@ -93,11 +96,14 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
 
     current = to_naive(date_debut)
     date_actuelle_naive = to_naive(date_actuelle.replace(hour=0, minute=0, second=0, microsecond=0))
-    semaines_utiles = 0
 
+    # On ne compte pas au-delà de la fin d’année scolaire
+    date_limite = min(date_actuelle_naive, date_fin_annee)
+
+    semaines_utiles = 0
     lundis_info = []
 
-    while current <= date_actuelle_naive:
+    while current <= date_limite:
         if current.weekday() == 0:  # Lundi
             in_vacances = any(start <= current <= end for start, end in vacances_valides)
             lundis_info.append((current.strftime("%d/%m/%Y"), "vacances" if in_vacances else "semaine utile"))
@@ -105,7 +111,6 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
                 semaines_utiles += 1
         current += timedelta(days=1)
 
-    # Affichage des lundis analysés
     st.write("### Lundis analysés :")
     for date_str, statut in lundis_info:
         st.write(f"- {date_str} : {statut}")
