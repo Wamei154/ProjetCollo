@@ -299,7 +299,7 @@ def principal():
 
     st.markdown(
         """
-        <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px; text-align: center;">
+        <div style="position: fixed; bottom: 50; width: 100%; font-size: 10px; text-align: center;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
