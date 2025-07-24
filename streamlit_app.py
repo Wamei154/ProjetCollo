@@ -16,7 +16,7 @@ with open("logo_prepa.png", "rb") as img_file:
 html_code = f'''<div style="text-align: center; margin-bottom: 80px;"><a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank"><img src="data:image/png;base64,{b64_data}" width="150"></a></div>'''
 st.sidebar.markdown(html_code, unsafe_allow_html=True)
 
-# Définir le code propriétaire (à changer pour une utilisation réelle !)
+# Définir le code propriétaire (À CHANGER POUR UNE UTILISATION RÉELLE !)
 CODE_PROPRIETAIRE = "debug123" 
 
 # --- Fonctions utilitaires ---
@@ -62,7 +62,6 @@ def charger_donnees(classe, annee_scolaire=2024):
     dictionnaire_legende = {}
 
     dates_semaines = []
-    # Lit les dates des semaines depuis la première ligne de l'Excel, à partir de la colonne B
     for cell in feuille_colloscope[1][1:]:
         if cell.value:
             date_extrait = extract_date(str(cell.value), annee_scolaire)
@@ -70,14 +69,12 @@ def charger_donnees(classe, annee_scolaire=2024):
         else:
             dates_semaines.append(None)
 
-    # Lecture des données du colloscope par groupe
     for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
         cle = ligne[0]
         valeurs = ligne[1:]
         valeurs = [v.split() if v is not None else [] for v in valeurs]
         dictionnaire_donnees[cle] = valeurs
 
-    # Lecture des données de la légende
     for ligne in feuille_legende.iter_rows(min_row=2, values_only=True):
         cle_legende = ligne[0]
         valeurs_legende = ligne[1:]
@@ -112,7 +109,6 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
                 except:
                     pass
 
-        # Filtre les vacances d'été trop longues ou hors période scolaire pertinente
         vacances = [(start, end) for start, end in vacances if to_naive(end) < datetime(2024, 9, 16) or to_naive(start) > datetime(2024, 9, 2)]
 
     except Exception as e:
@@ -127,12 +123,10 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     if date_actuelle is None:
         date_actuelle = datetime.now()
     
-    # Détermine le lundi de la semaine actuelle
     current_weekday = date_actuelle.weekday()
     date_du_lundi_actuel = date_actuelle - timedelta(days=current_weekday)
     date_du_lundi_actuel = date_du_lundi_actuel.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    # Compare le lundi actuel avec les lundis des semaines dans l'Excel
     for i, date_semaine_excel in enumerate(dates_semaines):
         if date_semaine_excel is None:
             continue
@@ -140,9 +134,9 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
         lundi_excel = date_semaine_excel.replace(hour=0, minute=0, second=0, microsecond=0)
 
         if lundi_excel >= date_du_lundi_actuel:
-            return i + 1 # Retourne le numéro de la semaine (1-basé)
+            return i + 1
     
-    return len(dates_semaines) # Si la date est après toutes les semaines définies
+    return len(dates_semaines)
 
 def enregistrer_parametres(groupe, semaine, classe):
     with open('config.txt', 'w') as fichier:
@@ -151,7 +145,7 @@ def enregistrer_parametres(groupe, semaine, classe):
 def charger_parametres():
     groupe = "G1"
     classe = "1"
-    semaine = "1" # Valeur par défaut temporaire, sera écrasée par semaine_auto si pas de config
+    semaine = "1" 
 
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
@@ -179,13 +173,11 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
         for k in range(len(ligne)):
             cle_legende = ligne[k]
             if cle_legende not in dictionnaire_legende:
-                # Gérer le cas où la clé n'est pas dans la légende, par ex. en affichant un placeholder
                 tableau.append([None, None, None, None, f"Clé inconnue: {cle_legende}"])
                 continue 
 
             elements_assembles = aplatir_liste(dictionnaire_legende[cle_legende])
             
-            # Déduire la matière de la clé
             matiere = "Non spécifié"
             if cle_legende.startswith('M'): matiere = "Mathématiques"
             elif cle_legende.startswith('A'): matiere = "Anglais"
@@ -206,7 +198,7 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
 def changer_semaine(sens):
     if "semaine" in st.session_state:
         nouvelle_semaine = int(st.session_state.semaine) + sens
-        if 1 <= nouvelle_semaine <= 30: # Limite à 30 semaines
+        if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
 def afficher_donnees():
@@ -238,14 +230,14 @@ def afficher_donnees():
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
-    df.index = ['' for _ in range(len(df))] # Cache l'index par défaut de Pandas
+    df.index = ['' for _ in range(len(df))]
 
     st.table(df.style.hide(axis='index'))
 
 # --- Fonctions d'accès propriétaire (Debug) ---
 
 def afficher_dictionnaires_secrets(classe_selectionnee):
-    st.subheader("Contenu des dictionnaires (Accès propriétaire)")
+    st.subheader("Contenu des dictionnaires")
     try:
         dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee)
         
@@ -266,21 +258,35 @@ def gerer_outils_debug(classe_selectionnee):
     st.subheader("Outils de débogage")
     
     if st.button("Recharger les données (Colloscope/Légende)", key="reload_data_btn"):
-        st.cache_data.clear() # Vide tout le cache de st.cache_data
+        st.cache_data.clear()
         st.success("Cache des données vidé. Les fichiers Excel seront relus au prochain accès.")
-        st.rerun() # Rafraîchit l'application pour forcer le rechargement
+        st.rerun()
 
     if st.button("Vider tout le cache Streamlit", key="clear_all_cache_btn"):
         st.cache_data.clear()
         st.cache_resource.clear()
         st.success("Tout le cache Streamlit a été vidé.")
-        st.rerun() # Rafraîchit l'application
+        st.rerun()
 
     st.write("### Informations système")
     st.write(f"**Date et heure actuelle du serveur :** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     st.write("Contenu de `st.session_state`:")
     st.json(st.session_state.to_dict())
 
+# --- NOUVEAU : Dialogue d'authentification pour le debug ---
+@st.dialog("Accès Propriétaire")
+def debug_dialog():
+    st.write("Veuillez entrer le code secret pour accéder aux outils de débogage.")
+    code_secret_input = st.text_input("Code secret", type="password", key="dialog_secret_code")
+
+    if st.button("Valider l'accès"):
+        if code_secret_input == CODE_PROPRIETAIRE:
+            st.session_state["authenticated_owner"] = True
+            st.success("Accès accordé !")
+            st.rerun() # Rafraîchir pour afficher les outils
+        else:
+            st.error("Code incorrect.")
+            st.session_state["authenticated_owner"] = False
 
 # --- Fonction principale de l'application ---
 
@@ -294,7 +300,6 @@ def principal():
 
     date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Charge les dates des semaines pour la classe par défaut (ex: "1") pour l'affichage de la semaine actuelle
     _, _, dates_semaines_initiales = charger_donnees(classe="1") 
     
     semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
@@ -304,19 +309,16 @@ def principal():
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
     st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
 
-    semaine_auto = str(min(semaines_ecoulees, 30)) # Limite la semaine auto à 30
+    semaine_auto = str(min(semaines_ecoulees, 30))
 
     groupe_default, semaine_saved, classe_default = charger_parametres()
 
-    # Si l'utilisateur n'a pas de config enregistrée, utilise la semaine auto
     semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
 
-    # Widgets de sélection utilisateur
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
     groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
     semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
 
-    # Boutons de navigation/affichage
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher", key="afficher_btn"):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
@@ -330,22 +332,30 @@ def principal():
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
 
-    # Section d'accès propriétaire (Debug)
+    # --- Accès Propriétaire via Dialogue ---
     st.sidebar.markdown("---")
-    st.sidebar.subheader("Accès Propriétaire (Debug)")
-    code_secret_input = st.sidebar.text_input("Code secret", type="password", key="secret_code_input_debug")
+    if st.sidebar.button("Accès Propriétaire", key="owner_access_btn"):
+        debug_dialog() # Ouvre la boîte de dialogue
 
-    if code_secret_input == CODE_PROPRIETAIRE:
+    # Afficher les outils de débogage si authentifié
+    if st.session_state.get("authenticated_owner", False):
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("Outils Propriétaire Actifs")
+        if st.sidebar.button("Déconnexion", key="owner_logout_btn"):
+            st.session_state["authenticated_owner"] = False
+            st.rerun() # Rafraîchir pour masquer les outils
+
+        # Onglets pour les outils de débogage
         st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
 
         with st_debug_tabs[0]:
             if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
-                afficher_dictionnaires_secrets(classe) # Affiche les dicts pour la classe sélectionnée
+                afficher_dictionnaires_secrets(classe)
         
         with st_debug_tabs[1]:
-            gerer_outils_debug(classe) # Affiche les autres outils de debug
-    elif code_secret_input:
-        st.sidebar.error("Code incorrect.")
+            gerer_ouils_debug(classe) # Correction : nom de fonction 'gerer_outils_debug'
+    # --- Fin Accès Propriétaire ---
+
 
     # Pied de page (Footer)
     st.markdown(
