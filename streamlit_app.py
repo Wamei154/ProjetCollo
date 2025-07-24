@@ -5,7 +5,6 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime, timedelta
 import base64
-import re
 
 st.set_page_config(page_title="Colloscope")
 
@@ -23,6 +22,9 @@ def aplatir_liste(liste_imbriquee):
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
 @st.cache_data
+import re
+from datetime import datetime
+
 def extract_date(cell_str, year):
     match = re.search(r'\((\d{2}/\d{2})\)', cell_str)
     if match:
@@ -35,14 +37,86 @@ def extract_date(cell_str, year):
             return None
     return None
 
+# MODIFICATION : La fonction to_naive a été déplacée ici (avant obtenir_vacances) pour être accessible
 def to_naive(dt):
     if dt.tzinfo is not None:
         return dt.replace(tzinfo=None)
     return dt
 
-# NOUVELLE FONCTION AJOUTÉE
+@st.cache_data
+def charger_donnees(classe, annee_scolaire=2024):
+    fichier_colloscope = chemin_ressource(f'Colloscope{classe}.xlsx')
+    fichier_legende = chemin_ressource(f'Legende{classe}.xlsx')
+
+    excel_colloscope = load_workbook(fichier_colloscope)
+    excel_legende = load_workbook(fichier_legende)
+
+    feuille_colloscope = excel_colloscope.active
+    feuille_legende = excel_legende.active
+
+    dictionnaire_donnees = {}
+    dictionnaire_legende = {}
+
+    # Récupération des dates des semaines (dans la première ligne, à partir de la 2e colonne)
+    dates_semaines = []
+    for cell in feuille_colloscope[1][1:]:  # ligne 1, colonnes 2 à la fin (openpyxl index 0-based)
+        date_extrait = extract_date(str(cell.value), annee_scolaire)
+        dates_semaines.append(date_extrait)
+
+    # Lecture des données par groupe
+    for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
+        cle = ligne[0]
+        valeurs = ligne[1:]
+        valeurs = [v.split() if v is not None else [] for v in valeurs]
+        dictionnaire_donnees[cle] = valeurs
+
+    # Lecture légende
+    for ligne in feuille_legende.iter_rows(min_row=2, values_only=True):
+        cle_legende = ligne[0]
+        valeurs_legende = ligne[1:]
+        valeurs_legende = [v.split() if v is not None else [] for v in valeurs_legende]
+        dictionnaire_legende[cle_legende] = valeurs_legende
+
+    return dictionnaire_donnees, dictionnaire_legende, dates_semaines
+
+def obtenir_vacances(zone="C", annee="2024-2025"):
+    url = "https://data.education.gouv.fr/api/records/1.0/search/"
+    params = {
+        "dataset": "fr-en-calendrier-scolaire",
+        "rows": 500,
+        "refine.zone": f"Zone {zone}",
+        "refine.annee_scolaire": annee,
+    }
+    vacances = []
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        for record in data["records"]:
+            fields = record.get("fields", {})
+            start_str = fields.get("start_date")
+            end_str = fields.get("end_date")
+            if start_str and end_str:
+                try:
+                    debut = datetime.fromisoformat(start_str)
+                    fin = datetime.fromisoformat(end_str)
+                    vacances.append((debut, fin))
+                except:
+                    pass
+
+        # MODIFICATION : Correction du bug de comparaison de dates en utilisant la fonction to_naive
+        # 🔒 On enlève les vacances d'été trop longues
+        vacances = [(start, end) for start, end in vacances if to_naive(end) < datetime(2024, 9, 16) or to_naive(start) > datetime(2024, 9, 2)]
+
+    except Exception as e:
+        st.error(f"Erreur récupération vacances : {e}")
+        vacances = []
+
+    return vacances
+
+# AJOUT : Définition de la fonction manquante 'calculer_semaines_ecoulees'
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
-    """Calcule le nombre de semaines scolaires écoulées."""
+    """Calcule le nombre de semaines scolaires écoulées en ignorant les semaines de vacances."""
     if date_actuelle < date_debut:
         return 1
     
@@ -60,78 +134,11 @@ def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
         if not est_en_vacances:
             semaines_comptees += 1
         
+        # On passe à la semaine suivante
         jour_courant += timedelta(days=7)
         
     return max(1, semaines_comptees)
 
-# FONCTION MODIFIÉE
-@st.cache_data
-def obtenir_vacances(zone="C", annee="2024-2025"):
-    url = "https://data.education.gouv.fr/api/records/1.0/search/"
-    params = {
-        "dataset": "fr-en-calendrier-scolaire",
-        "rows": 50,
-        "refine.zone": f"Zone {zone}",
-        "refine.annee_scolaire": annee,
-    }
-    vacances = []
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        for record in data["records"]:
-            fields = record.get("fields", {})
-            start_str = fields.get("start_date")
-            end_str = fields.get("end_date")
-            if start_str and end_str:
-                try:
-                    debut = datetime.fromisoformat(start_str)
-                    fin = datetime.fromisoformat(end_str)
-                    # On convertit immédiatement en "naive" pour éviter les erreurs
-                    vacances.append((to_naive(debut), to_naive(fin)))
-                except:
-                    pass
-
-        # Le filtrage fonctionne maintenant car toutes les dates sont "naives"
-        vacances = [(start, end) for start, end in vacances if end < datetime(2025, 9, 1) and start > datetime(2024, 9, 1)]
-
-    except Exception as e:
-        st.error(f"Erreur récupération vacances : {e}")
-        vacances = []
-
-    return vacances
-
-
-@st.cache_data
-def charger_donnees(classe, annee_scolaire=2024):
-    fichier_colloscope = chemin_ressource(f'Colloscope{classe}.xlsx')
-    fichier_legende = chemin_ressource(f'Legende{classe}.xlsx')
-
-    excel_colloscope = load_workbook(fichier_colloscope)
-    excel_legende = load_workbook(fichier_legende)
-
-    feuille_colloscope = excel_colloscope.active
-    feuille_legende = excel_legende.active
-
-    dictionnaire_donnees = {}
-    dictionnaire_legende = {}
-
-    dates_semaines = []
-    for cell in feuille_colloscope[1][1:]:
-        date_extrait = extract_date(str(cell.value), annee_scolaire)
-        dates_semaines.append(date_extrait)
-
-    for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
-        cle = ligne[0]
-        valeurs = [v.split() if v is not None else [] for v in ligne[1:]]
-        dictionnaire_donnees[cle] = valeurs
-
-    for ligne in feuille_legende.iter_rows(min_row=2, values_only=True):
-        cle_legende = ligne[0]
-        valeurs_legende = [v.split() if v is not None else [] for v in ligne[1:]]
-        dictionnaire_legende[cle_legende] = valeurs_legende
-
-    return dictionnaire_donnees, dictionnaire_legende, dates_semaines
 
 def semaine_actuelle(dates_semaines, date_actuelle=None):
     if date_actuelle is None:
@@ -139,6 +146,7 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     for i, date_semaine in enumerate(dates_semaines):
         if date_semaine is None:
             continue
+        # Si la date de la semaine est après la date actuelle, on retourne la semaine précédente
         if date_semaine > date_actuelle:
             return max(i, 1)
     return len(dates_semaines)
@@ -150,8 +158,8 @@ def enregistrer_parametres(groupe, semaine, classe):
 def charger_parametres():
     groupe = "G1"
     classe = "1"
-    semaine = "1" # Valeur par défaut de base
-    
+    vacances = obtenir_vacances()
+    semaine = str(calculer_semaines_ecoulees(datetime.strptime("16/09/2024", "%d/%m/%Y"), datetime.now(), vacances))
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
@@ -159,29 +167,21 @@ def charger_parametres():
                 groupe = lignes[0].strip()
                 semaine = lignes[1].strip()
                 classe = lignes[2].strip()
-    else:
-        # Si le fichier de config n'existe pas, on calcule la semaine actuelle
-        vacances = obtenir_vacances()
-        date_debut_annee = datetime.strptime("02/09/2024", "%d/%m/%Y")
-        semaine = str(calculer_semaines_ecoulees(date_debut_annee, datetime.now(), vacances))
-
     return groupe, semaine, classe
 
 def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
     tableau = []
+
     try:
         if groupe not in dictionnaire_donnees:
             raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
 
-        semaine_idx = int(semaine) - 1
+        semaine = int(semaine)
 
-        if semaine_idx >= len(dictionnaire_donnees[groupe]) or semaine_idx < 0:
-            return [] # Retourne un tableau vide si la semaine n'a pas de khôlle
+        if semaine - 1 >= len(dictionnaire_donnees[groupe]) or semaine - 1 < 0:
+            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
 
-        ligne = dictionnaire_donnees[groupe][semaine_idx]
-        
-        if not ligne: # Si la liste est vide pour cette semaine
-            return []
+        ligne = dictionnaire_donnees[groupe][semaine - 1]
 
         for k in range(len(ligne)):
             if ligne[k] not in dictionnaire_legende:
@@ -206,20 +206,19 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
             elements_assembles.append(matiere)
             tableau.append(elements_assembles)
 
-    except (KeyError, IndexError) as erreur:
-        st.warning(f"Pas de khôlle programmée pour le groupe {groupe} en semaine {semaine}.")
-        return []
-    except Exception as e:
-        st.error(f"Une erreur inattendue est survenue : {e}")
-        return []
+    except (KeyError, IndexError, Exception) as erreur:
+        st.error(str(erreur))
+        return tableau
 
     return tableau
 
-def afficher_donnees():
-    if 'groupe' not in st.session_state or 'semaine' not in st.session_state or 'classe' not in st.session_state:
-        st.warning("Veuillez sélectionner une classe, un groupe et une semaine.")
-        return
+def changer_semaine(sens):
+    if "semaine" in st.session_state:
+        nouvelle_semaine = int(st.session_state.semaine) + sens
+        if 1 <= nouvelle_semaine <= 30:
+            st.session_state.semaine = nouvelle_semaine
 
+def afficher_donnees():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
@@ -227,91 +226,91 @@ def afficher_donnees():
     enregistrer_parametres(groupe, semaine, classe)
 
     try:
-        semaine_int = int(semaine)
-        if not 1 <= semaine_int <= 36:
-            st.error("La Semaine doit être entre 1 et 36.")
+        semaine = int(semaine)
+        if semaine < 1 or semaine > 30:
+            st.error("La Semaine doit être entre 1 et 30.")
             return
     except ValueError:
-        st.error("Veuillez entrer une Semaine valide (un nombre).")
+        st.error("Veuillez entrer une Semaine valide entre 1 et 30.")
         return
 
-    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe)
+    try:
+        numero_groupe = int(groupe[1:])
+        if numero_groupe < 0 or numero_groupe > 20:
+            st.error("Le Groupe doit être entre 1 et 20.")
+            return
+    except ValueError:
+        st.error("Veuillez entrer un Groupe valide entre 1 et 20.")
+        return
+
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe) # MODIF : On ne se sert pas de dates_semaines
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
-    if donnees:
-        df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
-        st.table(df.style.hide(axis='index'))
-    else:
-        st.info(f"Pas de khôlle programmée pour le groupe {groupe} en semaine {semaine}.")
-    
-    st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+    df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
+    df.index = ['' for _ in range(len(df))]
 
+    st.table(df.style.hide(axis='index'))
 
 def principal():
-    st.title("Colloscope TSI")
-
     if st.sidebar.button('EDT EPS'):
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
     st.sidebar.header("Sélection")
 
-    # Initialisation de session_state si les clés n'existent pas
-    if 'groupe' not in st.session_state or 'semaine' not in st.session_state or 'classe' not in st.session_state:
-        groupe_saved, semaine_saved, classe_saved = charger_parametres()
-        st.session_state.groupe = groupe_saved
-        st.session_state.semaine = semaine_saved
-        st.session_state.classe = classe_saved
-
-    date_actuelle = datetime.now()
+    date_debut = datetime.strptime("16/09/2024", "%d/%m/%Y")
+    date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     vacances = obtenir_vacances(zone="C", annee="2024-2025")
-    date_debut_annee = datetime.strptime("02/09/2024", "%d/%m/%Y") # Rentrée scolaire
-    semaines_ecoulees = calculer_semaines_ecoulees(date_debut_annee, date_actuelle, vacances)
+    semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle, vacances)
+    date_actuelle_str = date_actuelle.strftime("%d/%m")
 
-    st.sidebar.write(f"**Date** : {date_actuelle.strftime('%d/%m/%Y')}")
-    st.sidebar.write(f"**N° semaine scolaire** : {semaines_ecoulees}")
+    st.sidebar.write(f"**Date** :  {date_actuelle_str}")
+    st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
+
+    # Calcul de la semaine actuelle par défaut (limité à 30 max)
+    semaine_auto = str(min(semaines_ecoulees, 30))
+
+    # Charger les paramètres utilisateur s'ils existent
+    groupe_default, semaine_saved, classe_default = charger_parametres()
+
+    # Si l'utilisateur n'a pas modifié la semaine (pas de fichier config), on prend celle auto
+    semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
 
     # Interface utilisateur
-    def update_params():
-        st.session_state.classe = st.session_state['classe_select']
-        st.session_state.groupe = st.session_state['groupe_input']
-        st.session_state.semaine = st.session_state['semaine_select']
+    classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1)
+    groupe = st.sidebar.text_input("Groupe", value=groupe_default)
+    semaine = st.sidebar.selectbox(
+        "Semaine",
+        options=[str(i) for i in range(1, 31)],
+        index=int(semaine_default) - 1
+    )
+
+    cols = st.sidebar.columns(3)
+    if cols[0].button("Afficher"):
+        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-    
-    def change_week(direction):
-        current_week = int(st.session_state.semaine)
-        new_week = current_week + direction
-        if 1 <= new_week <= 36:
-            st.session_state.semaine = str(new_week)
+    if cols[1].button("◀"): # MODIFICATION : Changement des icônes pour compatibilité
+        changer_semaine(-1)
+        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-
-    classe_options = ["1", "2"]
-    classe_index = classe_options.index(st.session_state.classe) if st.session_state.classe in classe_options else 0
-    st.sidebar.selectbox("TSI", options=classe_options, index=classe_index, key='classe_select')
-
-    st.sidebar.text_input("Groupe", value=st.session_state.groupe, key='groupe_input')
-
-    semaine_options = [str(i) for i in range(1, 37)]
-    semaine_index = semaine_options.index(st.session_state.semaine) if st.session_state.semaine in semaine_options else semaines_ecoulees - 1
-    st.sidebar.selectbox("Semaine", options=semaine_options, index=semaine_index, key='semaine_select')
-
-    cols = st.sidebar.columns([2,1,1])
-    cols[0].button("Afficher", on_click=update_params, use_container_width=True)
-    cols[1].button("◀", on_click=change_week, args=(-1,), use_container_width=True)
-    cols[2].button("▶", on_click=change_week, args=(1,), use_container_width=True)
+    if cols[2].button("▶"): # MODIFICATION : Changement des icônes pour compatibilité
+        changer_semaine(1)
+        st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+        afficher_donnees()
 
     st.markdown(
         """
-        <div style="position: fixed; bottom: 10px; left: 0; width: 100%; font-size: 12px; text-align: center;">
+        <div style="position: fixed; bottom: 0; width: 100%; font-size: 10px; text-align: center;">
             Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
         </div>
         """,
         unsafe_allow_html=True
     )
-    
-    # Affichage initial
-    afficher_donnees()
 
+    # Sauvegarder dans session_state pour usage ailleurs dans l'app
+    st.session_state.groupe = groupe
+    st.session_state.semaine = semaine
+    st.session_state.classe = classe
 
 if __name__ == "__main__":
     principal()
