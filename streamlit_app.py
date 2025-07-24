@@ -22,9 +22,6 @@ def chemin_ressource(chemin_relatif):
 def aplatir_liste(liste_imbriquee):
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
-@st.cache_data
-from datetime import datetime
-
 def extract_date(cell_str, year):
     match = re.search(r'\((\d{2}/\d{2})\)', cell_str)
     if match:
