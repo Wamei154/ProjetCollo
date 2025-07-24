@@ -9,11 +9,17 @@ import re
 
 st.set_page_config(page_title="Colloscope")
 
+# Charger et afficher le logo en sidebar
 with open("logo_prepa.png", "rb") as img_file:
     b64_data = base64.b64encode(img_file.read()).decode()
 
 html_code = f'''<div style="text-align: center; margin-bottom: 80px;"><a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank"><img src="data:image/png;base64,{b64_data}" width="150"></a></div>'''
 st.sidebar.markdown(html_code, unsafe_allow_html=True)
+
+# Définir le code propriétaire (à changer pour une utilisation réelle !)
+CODE_PROPRIETAIRE = "debug123" 
+
+# --- Fonctions utilitaires ---
 
 def chemin_ressource(chemin_relatif):
     base_path = os.path.abspath(".")
@@ -22,7 +28,6 @@ def chemin_ressource(chemin_relatif):
 def aplatir_liste(liste_imbriquee):
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
-@st.cache_data
 def extract_date(cell_str, year):
     match = re.search(r'\((\d{2}/\d{2})\)', cell_str)
     if match:
@@ -40,6 +45,8 @@ def to_naive(dt):
         return dt.replace(tzinfo=None)
     return dt
 
+# --- Fonctions de chargement des données ---
+
 @st.cache_data
 def charger_donnees(classe, annee_scolaire=2024):
     fichier_colloscope = chemin_ressource(f'Colloscope{classe}.xlsx')
@@ -55,6 +62,7 @@ def charger_donnees(classe, annee_scolaire=2024):
     dictionnaire_legende = {}
 
     dates_semaines = []
+    # Lit les dates des semaines depuis la première ligne de l'Excel, à partir de la colonne B
     for cell in feuille_colloscope[1][1:]:
         if cell.value:
             date_extrait = extract_date(str(cell.value), annee_scolaire)
@@ -62,12 +70,14 @@ def charger_donnees(classe, annee_scolaire=2024):
         else:
             dates_semaines.append(None)
 
+    # Lecture des données du colloscope par groupe
     for ligne in feuille_colloscope.iter_rows(min_row=2, values_only=True):
         cle = ligne[0]
         valeurs = ligne[1:]
         valeurs = [v.split() if v is not None else [] for v in valeurs]
         dictionnaire_donnees[cle] = valeurs
 
+    # Lecture des données de la légende
     for ligne in feuille_legende.iter_rows(min_row=2, values_only=True):
         cle_legende = ligne[0]
         valeurs_legende = ligne[1:]
@@ -76,6 +86,7 @@ def charger_donnees(classe, annee_scolaire=2024):
 
     return dictionnaire_donnees, dictionnaire_legende, dates_semaines
 
+@st.cache_data
 def obtenir_vacances(zone="C", annee="2024-2025"):
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
@@ -101,6 +112,7 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
                 except:
                     pass
 
+        # Filtre les vacances d'été trop longues ou hors période scolaire pertinente
         vacances = [(start, end) for start, end in vacances if to_naive(end) < datetime(2024, 9, 16) or to_naive(start) > datetime(2024, 9, 2)]
 
     except Exception as e:
@@ -109,40 +121,18 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
 
     return vacances
 
-def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
-    if date_actuelle < date_debut:
-        return 1
-    
-    semaines_comptees = 0
-    jour_courant = date_debut
-
-    while jour_courant <= date_actuelle:
-        est_en_vacances = False
-        for debut_vac, fin_vac in vacances:
-            if to_naive(debut_vac) <= jour_courant < to_naive(fin_vac):
-                est_en_vacances = True
-                break
-        
-        if not est_en_vacances:
-            semaines_comptees += 1
-        
-        jour_courant += timedelta(days=7)
-        
-    return max(1, semaines_comptees)
-
+# --- Fonctions de logique métier ---
 
 def semaine_actuelle(dates_semaines, date_actuelle=None):
     if date_actuelle is None:
         date_actuelle = datetime.now()
     
+    # Détermine le lundi de la semaine actuelle
     current_weekday = date_actuelle.weekday()
-    if current_weekday != 0:
-        date_du_lundi_actuel = date_actuelle - timedelta(days=current_weekday)
-    else:
-        date_du_lundi_actuel = date_actuelle
-
+    date_du_lundi_actuel = date_actuelle - timedelta(days=current_weekday)
     date_du_lundi_actuel = date_du_lundi_actuel.replace(hour=0, minute=0, second=0, microsecond=0)
 
+    # Compare le lundi actuel avec les lundis des semaines dans l'Excel
     for i, date_semaine_excel in enumerate(dates_semaines):
         if date_semaine_excel is None:
             continue
@@ -150,9 +140,9 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
         lundi_excel = date_semaine_excel.replace(hour=0, minute=0, second=0, microsecond=0)
 
         if lundi_excel >= date_du_lundi_actuel:
-            return i + 1
+            return i + 1 # Retourne le numéro de la semaine (1-basé)
     
-    return len(dates_semaines)
+    return len(dates_semaines) # Si la date est après toutes les semaines définies
 
 def enregistrer_parametres(groupe, semaine, classe):
     with open('config.txt', 'w') as fichier:
@@ -161,7 +151,7 @@ def enregistrer_parametres(groupe, semaine, classe):
 def charger_parametres():
     groupe = "G1"
     classe = "1"
-    semaine = "1" 
+    semaine = "1" # Valeur par défaut temporaire, sera écrasée par semaine_auto si pas de config
 
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
@@ -174,53 +164,49 @@ def charger_parametres():
 
 def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
     tableau = []
-
     try:
-        if groupe not in dictionnaire_donnees:
-            raise KeyError(f"Le groupe '{groupe}' n'existe pas dans les données.")
-
         semaine = int(semaine)
+        if groupe not in dictionnaire_donnees:
+            st.error(f"Le groupe '{groupe}' n'existe pas dans les données.")
+            return tableau
 
-        if semaine - 1 >= len(dictionnaire_donnees[groupe]) or semaine - 1 < 0:
-            raise IndexError(f"La semaine {semaine} n'est pas valide pour le groupe '{groupe}'.")
+        if not (1 <= semaine <= len(dictionnaire_donnees[groupe])):
+            st.error(f"La semaine {semaine} n'est pas valide ou dépasse le nombre de semaines disponibles pour le groupe '{groupe}'.")
+            return tableau
 
         ligne = dictionnaire_donnees[groupe][semaine - 1]
 
         for k in range(len(ligne)):
-            if ligne[k] not in dictionnaire_legende:
-                # Si la clé n'existe pas dans la légende, on peut l'ignorer ou ajouter une entrée par défaut.
-                # Pour l'instant, nous ignorons et passons à la clé suivante.
+            cle_legende = ligne[k]
+            if cle_legende not in dictionnaire_legende:
+                # Gérer le cas où la clé n'est pas dans la légende, par ex. en affichant un placeholder
+                tableau.append([None, None, None, None, f"Clé inconnue: {cle_legende}"])
                 continue 
 
-            elements_assembles = aplatir_liste(dictionnaire_legende[ligne[k]])
+            elements_assembles = aplatir_liste(dictionnaire_legende[cle_legende])
+            
+            # Déduire la matière de la clé
             matiere = "Non spécifié"
-
-            if ligne[k].startswith('M'):
-                matiere = "Mathématiques"
-            elif ligne[k].startswith('A'):
-                matiere = "Anglais"
-            elif ligne[k].startswith('SI'):
-                matiere = "Sciences de l'Ingénieur"
-            elif ligne[k].startswith('F'):
-                matiere = "Français"
-            elif ligne[k].startswith('I'):
-                matiere = "Informatique"
-            elif ligne[k].startswith('P'):
-                matiere = "Physique"
+            if cle_legende.startswith('M'): matiere = "Mathématiques"
+            elif cle_legende.startswith('A'): matiere = "Anglais"
+            elif cle_legende.startswith('SI'): matiere = "Sciences de l'Ingénieur"
+            elif cle_legende.startswith('F'): matiere = "Français"
+            elif cle_legende.startswith('I'): matiere = "Informatique"
+            elif cle_legende.startswith('P'): matiere = "Physique"
 
             elements_assembles.append(matiere)
             tableau.append(elements_assembles)
 
-    except (KeyError, IndexError, Exception) as erreur:
-        st.error(str(erreur))
-        return tableau
-
+    except ValueError:
+        st.error("Veuillez entrer une Semaine valide (nombre entier).")
+    except Exception as erreur:
+        st.error(f"Une erreur inattendue est survenue : {erreur}")
     return tableau
 
 def changer_semaine(sens):
     if "semaine" in st.session_state:
         nouvelle_semaine = int(st.session_state.semaine) + sens
-        if 1 <= nouvelle_semaine <= 30:
+        if 1 <= nouvelle_semaine <= 30: # Limite à 30 semaines
             st.session_state.semaine = nouvelle_semaine
 
 def afficher_donnees():
@@ -231,8 +217,8 @@ def afficher_donnees():
     enregistrer_parametres(groupe, semaine, classe)
 
     try:
-        semaine = int(semaine)
-        if semaine < 1 or semaine > 30:
+        semaine_int = int(semaine)
+        if not (1 <= semaine_int <= 30):
             st.error("La Semaine doit être entre 1 et 30.")
             return
     except ValueError:
@@ -241,46 +227,66 @@ def afficher_donnees():
 
     try:
         numero_groupe = int(groupe[1:])
-        if numero_groupe < 0 or numero_groupe > 20:
+        if not (1 <= numero_groupe <= 20):
             st.error("Le Groupe doit être entre 1 et 20.")
             return
     except ValueError:
-        st.error("Veuillez entrer un Groupe valide entre 1 et 20.")
+        st.error("Veuillez entrer un Groupe valide (ex: G1) entre 1 et 20.")
         return
 
     dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe) 
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
-    df.index = ['' for _ in range(len(df))]
+    df.index = ['' for _ in range(len(df))] # Cache l'index par défaut de Pandas
 
     st.table(df.style.hide(axis='index'))
 
+# --- Fonctions d'accès propriétaire (Debug) ---
 
-# --- NOUVELLE FONCTION : Afficher le contenu des dictionnaires pour le propriétaire ---
 def afficher_dictionnaires_secrets(classe_selectionnee):
     st.subheader("Contenu des dictionnaires (Accès propriétaire)")
     try:
         dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee)
         
         st.write("### Dictionnaire de Données (`dictionnaire_donnees`)")
-        st.json(dictionnaire_donnees) # Affiche le dictionnaire en format JSON
+        st.json(dictionnaire_donnees)
 
         st.write("### Dictionnaire de Légende (`dictionnaire_legende`)")
         st.json(dictionnaire_legende)
 
         st.write("### Dates des Semaines (`dates_semaines`)")
-        # Convertir les objets datetime en chaînes pour un affichage plus clair
         dates_str = [d.strftime("%d/%m/%Y") if d else "None" for d in dates_semaines]
         st.write(dates_str)
 
     except Exception as e:
         st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
-# --- FIN NOUVELLE FONCTION ---
 
+def gerer_outils_debug(classe_selectionnee):
+    st.subheader("Outils de débogage")
+    
+    if st.button("Recharger les données (Colloscope/Légende)", key="reload_data_btn"):
+        st.cache_data.clear() # Vide tout le cache de st.cache_data
+        st.success("Cache des données vidé. Les fichiers Excel seront relus au prochain accès.")
+        st.rerun() # Rafraîchit l'application pour forcer le rechargement
+
+    if st.button("Vider tout le cache Streamlit", key="clear_all_cache_btn"):
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.success("Tout le cache Streamlit a été vidé.")
+        st.rerun() # Rafraîchit l'application
+
+    st.write("### Informations système")
+    st.write(f"**Date et heure actuelle du serveur :** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+    st.write("Contenu de `st.session_state`:")
+    st.json(st.session_state.to_dict())
+
+
+# --- Fonction principale de l'application ---
 
 def principal():
-    if st.sidebar.button('EDT EPS'):
+    # Bouton EDT EPS dans la sidebar
+    if st.sidebar.button('EDT EPS', key="edt_eps_btn"):
         st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
         st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
@@ -288,7 +294,7 @@ def principal():
 
     date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Charger les données pour obtenir les dates des semaines depuis Excel (pour la classe par défaut)
+    # Charge les dates des semaines pour la classe par défaut (ex: "1") pour l'affichage de la semaine actuelle
     _, _, dates_semaines_initiales = charger_donnees(classe="1") 
     
     semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
@@ -298,46 +304,50 @@ def principal():
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
     st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
 
-    semaine_auto = str(min(semaines_ecoulees, 30))
+    semaine_auto = str(min(semaines_ecoulees, 30)) # Limite la semaine auto à 30
 
     groupe_default, semaine_saved, classe_default = charger_parametres()
 
+    # Si l'utilisateur n'a pas de config enregistrée, utilise la semaine auto
     semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
 
+    # Widgets de sélection utilisateur
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
     groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
     semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
 
+    # Boutons de navigation/affichage
     cols = st.sidebar.columns(3)
-    if cols[0].button("Afficher"):
+    if cols[0].button("Afficher", key="afficher_btn"):
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-    if cols[1].button("◀"):
+    if cols[1].button("◀", key="prev_semaine_btn"):
         changer_semaine(-1)
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
-    if cols[2].button("▶"):
+    if cols[2].button("▶", key="next_semaine_btn"):
         changer_semaine(1)
         st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
         afficher_donnees()
 
-    # --- NOUVELLE PARTIE : Bouton d'accès secret pour les dictionnaires ---
+    # Section d'accès propriétaire (Debug)
     st.sidebar.markdown("---")
     st.sidebar.subheader("Accès Propriétaire (Debug)")
-    code_secret_input = st.sidebar.text_input("Code secret", type="password", key="secret_code_input")
-
-    # Définissez votre code secret ici
-    # ATTENTION : Pour une vraie application, ne pas le laisser en clair dans le code.
-    # Utilisez une variable d'environnement ou un fichier de configuration sécurisé.
-    CODE_PROPRIETAIRE = "debug123" 
+    code_secret_input = st.sidebar.text_input("Code secret", type="password", key="secret_code_input_debug")
 
     if code_secret_input == CODE_PROPRIETAIRE:
-        if st.sidebar.button("Afficher les dictionnaires"):
-            afficher_dictionnaires_secrets(classe) # Passe la classe sélectionnée
-    elif code_secret_input: # Si l'utilisateur a entré quelque chose mais ce n'est pas le bon code
-        st.sidebar.error("Code incorrect.")
-    # --- FIN NOUVELLE PARTIE ---
+        st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
 
+        with st_debug_tabs[0]:
+            if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
+                afficher_dictionnaires_secrets(classe) # Affiche les dicts pour la classe sélectionnée
+        
+        with st_debug_tabs[1]:
+            gerer_outils_debug(classe) # Affiche les autres outils de debug
+    elif code_secret_input:
+        st.sidebar.error("Code incorrect.")
+
+    # Pied de page (Footer)
     st.markdown(
     """
     <div style="margin-top: 30px; font-size: 10px; text-align: center; color: gray;">
@@ -347,9 +357,11 @@ def principal():
     unsafe_allow_html=True
     )
 
+    # Sauvegarder l'état actuel dans session_state
     st.session_state.groupe = groupe
     st.session_state.semaine = semaine
     st.session_state.classe = classe
 
+# Point d'entrée de l'application
 if __name__ == "__main__":
     principal()
