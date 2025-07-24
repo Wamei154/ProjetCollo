@@ -254,7 +254,7 @@ def afficher_dictionnaires_secrets(classe_selectionnee):
     except Exception as e:
         st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
 
-def gerer_outils_debug(classe_selectionnee): # Nom de fonction corrigé ici
+def gerer_outils_debug(classe_selectionnee):
     st.subheader("Outils de débogage")
     
     if st.button("Recharger les données (Colloscope/Légende)", key="reload_data_btn_debug"):
@@ -273,7 +273,7 @@ def gerer_outils_debug(classe_selectionnee): # Nom de fonction corrigé ici
     st.write("Contenu de `st.session_state`:")
     st.json(st.session_state.to_dict())
 
-# --- NOUVEAU : Dialogue d'authentification pour le debug ---
+# --- Dialogue d'authentification pour le debug ---
 @st.dialog("Accès Propriétaire")
 def debug_dialog():
     st.write("Veuillez entrer le code secret pour accéder aux outils de débogage.")
@@ -291,26 +291,7 @@ def debug_dialog():
 # --- Fonction principale de l'application ---
 
 def principal():
-    # Bouton EDT EPS dans la sidebar
-    if st.sidebar.button('EDT EPS', key="edt_eps_btn"):
-        st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
-        st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
-
-    # --- Accès Propriétaire via Dialogue ---
-    st.sidebar.markdown("---")
-    if st.sidebar.button("Accès Propriétaire", key="owner_access_btn"):
-        debug_dialog() # Ouvre la boîte de dialogue
-
-    # Ajouter le bouton de déconnexion si l'utilisateur est authentifié
-    if st.session_state.get("authenticated_owner", False):
-        st.sidebar.markdown("---")
-        st.sidebar.subheader("Outils Propriétaire") # J'ai changé le titre pour être plus simple
-        if st.sidebar.button("Déconnexion", key="owner_logout_btn"):
-            st.session_state["authenticated_owner"] = False
-            st.rerun() # Rafraîchir pour masquer les outils
-
     # Définition des onglets principaux de l'application
-    # Le deuxième onglet "Outils Propriétaire" est conditionnel
     tabs_names = ["Colloscope"]
     if st.session_state.get("authenticated_owner", False):
         tabs_names.append("Outils Propriétaire")
@@ -320,6 +301,12 @@ def principal():
     # Contenu de l'onglet "Colloscope" (toujours visible)
     with main_tabs[0]:
         st.header("Colloscope")
+        
+        # Bouton EDT EPS dans la partie principale si pas dans la sidebar
+        if st.button('EDT EPS', key="edt_eps_btn_main"):
+            st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
+            st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
+
         st.sidebar.header("Sélection")
 
         date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -346,7 +333,7 @@ def principal():
         cols = st.sidebar.columns(3)
         if cols[0].button("Afficher", key="afficher_btn"):
             st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope() # Appel de la fonction renommée
+            afficher_donnees_colloscope()
         if cols[1].button("◀", key="prev_semaine_btn"):
             changer_semaine(-1)
             st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
@@ -359,6 +346,13 @@ def principal():
     # Contenu de l'onglet "Outils Propriétaire" (seulement si authentifié)
     if st.session_state.get("authenticated_owner", False):
         with main_tabs[1]: # main_tabs[1] sera l'onglet "Outils Propriétaire"
+            # Bouton de déconnexion dans l'onglet Propriétaire
+            st.subheader("Outils Propriétaire")
+            if st.button("Déconnexion", key="owner_logout_btn_main"): # Moved here for consistency
+                st.session_state["authenticated_owner"] = False
+                st.rerun() # Rafraîchir pour masquer les outils
+
+            st.markdown("---")
             # Sous-onglets pour les outils de débogage
             st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
 
@@ -368,6 +362,15 @@ def principal():
             
             with st_debug_tabs[1]:
                 gerer_outils_debug(classe)
+
+    # --- Accès Propriétaire via Dialogue (maintenant en bas de la sidebar) ---
+    # Utilisation d'un conteneur pour positionner le bouton en bas de la sidebar
+    st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # Espace pour pousser le bouton vers le bas
+    if not st.session_state.get("authenticated_owner", False): # N'affiche le bouton que si non connecté
+        if st.sidebar.button("🐞 Accès Propriétaire", key="owner_access_btn_footer"):
+            debug_dialog() # Ouvre la boîte de dialogue
+    # --- Fin Accès Propriétaire ---
+
 
     # Pied de page (Footer)
     st.markdown(
