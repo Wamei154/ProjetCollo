@@ -81,14 +81,14 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
     return vacances
 
 def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
+    # Filtrer uniquement les tuples valides
+    vacances_valides = [(start, end) for start, end in vacances if isinstance(start, datetime) and isinstance(end, datetime)]
+
     current = date_debut
     semaines_utiles = 0
 
     while current <= date_actuelle:
-        in_vacances = any(
-            isinstance(start, datetime) and isinstance(end, datetime) and start <= current <= end
-            for start, end in vacances
-        )
+        in_vacances = any(start <= current <= end for start, end in vacances_valides)
         if not in_vacances and current.weekday() == 0:  # lundi
             semaines_utiles += 1
         current += timedelta(days=1)
