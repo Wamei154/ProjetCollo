@@ -85,12 +85,11 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
             start_str = fields.get("start_date")
             end_str = fields.get("end_date")
             if start_str and end_str:
-                try:
-                    debut = datetime.fromisoformat(start_str)
-                    fin = datetime.fromisoformat(end_str)
-                    vacances.append((debut, fin))
-                except:
-                    pass
+                # Utilise dateutil.parser pour convertir les dates ISO avec fuseau
+                debut = parser.isoparse(start_str).replace(tzinfo=None)
+                fin = parser.isoparse(end_str).replace(tzinfo=None)
+                vacances.append((debut, fin))
+        # Filtrer les vacances avant ou après la période scolaire utile
         vacances = [(start, end) for start, end in vacances if end < datetime(2024, 9, 16) or start > datetime(2024, 9, 2)]
     except Exception as e:
         st.error(f"Erreur récupération vacances : {e}")
