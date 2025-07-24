@@ -252,7 +252,7 @@ def principal():
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
-        semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=min(semaines_ecoulees - 1, 29))
+    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=min(semaines_ecoulees - 1, 29))
 
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher", on_click=afficher_donnees):
