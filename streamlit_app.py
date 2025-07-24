@@ -4,6 +4,7 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime
 import base64
+import requests
 
 st.set_page_config(page_title="Colloscope")
 
@@ -19,6 +20,33 @@ def chemin_ressource(chemin_relatif):
     base_path = os.path.abspath(".")
     return os.path.join(base_path, chemin_relatif)
 
+def obtenir_vacances(zone="C", annee="2024-2025"):
+    """Récupère automatiquement les vacances scolaires depuis l'API de l'Éducation Nationale"""
+    url = "https://data.education.gouv.fr/api/records/1.0/search/"
+    params = {
+        "dataset": "fr-en-calendrier-scolaire",
+        "rows": 100,
+        "refine.zone": f"Zone {zone}",
+        "refine.annee_scolaire": annee,
+    }
+
+    vacances = []
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        for record in data["records"]:
+            champs = record["fields"]
+            debut = datetime.strptime(champs["start_date"], "%Y-%m-%d")
+            fin = datetime.strptime(champs["end_date"], "%Y-%m-%d")
+            vacances.append((debut, fin))
+    except Exception as e:
+        st.warning(f"Impossible de récupérer les vacances en ligne : {e}")
+        # Tu peux ici renvoyer une liste vide ou une valeur par défaut
+        vacances = []
+
+    return vacances
 
 def aplatir_liste(liste_imbriquee):
     """Aplatis la liste"""
@@ -71,7 +99,8 @@ def enregistrer_parametres(groupe, semaine, classe):
 def charger_parametres():
     """Charge les paramètres depuis le fichier de configuration"""
     groupe = "G1"
-    semaine = str(obtenir_semaine_actuelle())
+    vacances = obtenir_vacances(zone="C", annee="2024-2025")
+    semaine = str(calculer_semaines_ecoulees(datetime.strptime("16/09/2024", "%d/%m/%Y"), datetime.now(), vacances))
     classe = "1"  # Classe par défaut
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
@@ -147,11 +176,18 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
     return tableau
 
 
-def calculer_semaines_ecoulees(date_debut, date_actuelle):
-    """Calcule le nombre de semaines passées depuis la date de début"""
-    delta = date_actuelle - date_debut
-    semaines_ecoulees = delta.days // 7
-    return semaines_ecoulees
+def calculer_semaines_ecoulees(date_debut, date_actuelle, vacances):
+    """Calcule les semaines écoulées depuis la rentrée, hors vacances"""
+    current = date_debut
+    semaines_utiles = 0
+
+    while current <= date_actuelle:
+        in_vacances = any(start <= current <= end for start, end in vacances)
+        if not in_vacances and current.weekday() == 0:  # lundi
+            semaines_utiles += 1
+        current += timedelta(days=1)
+
+    return semaines_utiles
 
 def changer_semaine(sens):
     """Modifie la semaine en fonction du bouton pressé"""
@@ -206,19 +242,17 @@ def principal():
 
     st.sidebar.header("Sélection")
 
-    # Date de début de la première semaine
     date_debut = datetime.strptime("16/09/2024", "%d/%m/%Y")
     date_actuelle = datetime.now()
 
-    # Calculer le nombre de semaines passées
-    semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle)
-    date_actuelle_str = date_actuelle.strftime("%d/%m")
+    vacances = obtenir_vacances(zone="C", annee="2024-2025")
+    semaines_ecoulees = calculer_semaines_ecoulees(date_debut, date_actuelle, vacances)
 
     st.sidebar.write(f"**Date** :  {date_actuelle_str}")
 
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=0)
     groupe = st.sidebar.text_input("Groupe", value=charger_parametres()[0])
-    semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=int(charger_parametres()[1]) - 1)
+        semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=min(semaines_ecoulees - 1, 29))
 
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher", on_click=afficher_donnees):
