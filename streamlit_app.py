@@ -50,7 +50,7 @@ def charger_donnees(classe):
     return dictionnaire_donnees, dictionnaire_legende
 
 @st.cache_data
-def obtenir_vacances(zone="C", annee="2024-2025"):
+def obtenir_vacances(zone="B", annee="2024-2025"):
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
         "dataset": "fr-en-calendrier-scolaire",
