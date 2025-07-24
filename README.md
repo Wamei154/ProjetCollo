@@ -41,8 +41,8 @@ Ce tableau fournit les informations détaillées associées à chaque "Clé" tro
 
 | **Clé** | **Professeur** | **Jour** | **Heure** | **Salle** |
 | :------ | :------------- | :------- | :-------- | :-------- |
-| M1 | Dupont | Lundi | 8h-10h | Salle 101 |
-| SI1 | Martin | Mardi | 10h-12h | Salle 202 |
+| M1 | Dupont | Lundi | Xh | Salle 101 |
+| SI1 | Martin | Mardi | Xh | Salle 202 |
 
 ---
 
