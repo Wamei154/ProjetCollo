@@ -5,6 +5,7 @@ from openpyxl import load_workbook
 import pandas as pd
 from datetime import datetime, timedelta
 import base64
+import re
 
 st.set_page_config(page_title="Colloscope")
 
@@ -22,8 +23,6 @@ def aplatir_liste(liste_imbriquee):
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
 @st.cache_data
-import re
-from datetime import datetime
 
 def extract_date(cell_str, year):
     match = re.search(r'\((\d{2}/\d{2})\)', cell_str)
