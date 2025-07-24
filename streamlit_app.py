@@ -353,7 +353,7 @@ def principal():
                 afficher_dictionnaires_secrets(classe)
         
         with st_debug_tabs[1]:
-            gerer_ouils_debug(classe) # Correction : nom de fonction 'gerer_outils_debug'
+            gerer_outils_debug(classe) # Correction : nom de fonction 'gerer_outils_debug'
     # --- Fin Accès Propriétaire ---
 
 
