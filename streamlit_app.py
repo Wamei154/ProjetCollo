@@ -278,11 +278,7 @@ def principal():
     # Interface utilisateur
     classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1)
     groupe = st.sidebar.text_input("Groupe", value=groupe_default)
-    semaine = st.sidebar.selectbox(
-        "Semaine",
-        options=[str(i) for i in range(1, 31)],
-        index=int(semaine_default) - 1
-    )
+    semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1)
 
     cols = st.sidebar.columns(3)
     if cols[0].button("Afficher"):
@@ -298,13 +294,14 @@ def principal():
         afficher_donnees()
 
     st.markdown(
-        """
-        <div style="position: fixed; bottom: 50; width: 100%; font-size: 10px; text-align: center;">
-            Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier et de DAMBRY Paul
-        </div>
-        """,
-        unsafe_allow_html=True
+    """
+    <div style="margin-top: 30px; font-size: 10px; text-align: center; color: gray;">
+        Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier, ChatGPT, Gémini et de DAMBRY Paul
+    </div>
+    """,
+    unsafe_allow_html=True
     )
+
 
     # Sauvegarder dans session_state pour usage ailleurs dans l'app
     st.session_state.groupe = groupe
