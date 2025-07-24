@@ -303,7 +303,7 @@ def principal():
         st.header("Colloscope")
         
         # Bouton EDT EPS dans la partie principale si pas dans la sidebar
-        if st.button('EDT EPS', key="edt_eps_btn_main"):
+        if st.sidebar.button('EDT EPS', key="edt_eps_btn_main"):
             st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
             st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
@@ -367,7 +367,7 @@ def principal():
     # Utilisation d'un conteneur pour positionner le bouton en bas de la sidebar
     st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # Espace pour pousser le bouton vers le bas
     if not st.session_state.get("authenticated_owner", False): # N'affiche le bouton que si non connecté
-        if st.sidebar.button("🐞 Accès Propriétaire", key="owner_access_btn_footer"):
+        if st.sidebar.button("🐞", key="owner_access_btn_footer"):
             debug_dialog() # Ouvre la boîte de dialogue
     # --- Fin Accès Propriétaire ---
 
