@@ -348,14 +348,13 @@ def principal():
     # Charger les paramètres (groupe, semaine, classe)
     groupe_default, semaine_saved, classe_default = charger_parametres()
 
-    # Initialiser st.session_state si ce n'est pas déjà fait
+    # Initialiser st.session_state
     if "groupe" not in st.session_state:
         st.session_state.groupe = groupe_default
     if "semaine" not in st.session_state:
         st.session_state.semaine = semaine_saved
     if "classe" not in st.session_state:
         st.session_state.classe = classe_default
-    # annee_scolaire n'est plus dans session_state car automatique
 
     # Définition des onglets principaux de l'application
     tabs_names = ["Colloscope"]
@@ -413,10 +412,9 @@ def principal():
             st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
             afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
 
-    # Contenu de l'onglet "Outils Propriétaire" (seulement si authentifié)
+    # Contenu de l'onglet "Outils Propriétaire" 
     if st.session_state.get("authenticated_owner", False):
         with main_tabs[1]: # main_tabs[1] sera l'onglet "Outils Propriétaire"
-            # Bouton de déconnexion dans l'onglet Propriétaire
             st.subheader("Outils Propriétaire")
             if st.button("Déconnexion", key="owner_logout_btn_main"): 
                 st.session_state["authenticated_owner"] = False
@@ -432,18 +430,15 @@ def principal():
                     afficher_dictionnaires_secrets(st.session_state.classe, annee_scolaire_actuelle)
             
             with st_debug_tabs[1]:
-                # Passe la classe et l'année scolaire détectée aux outils de debug
                 gerer_outils_debug(st.session_state.classe, annee_scolaire_actuelle)
 
-    # --- Accès Propriétaire via Dialogue (maintenant en bas de la sidebar) ---
-    st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # Espace pour pousser le bouton vers le bas
-    if not st.session_state.get("authenticated_owner", False): # N'affiche le bouton que si non connecté
-        if st.sidebar.button("🐞 Accès Propriétaire", key="owner_access_btn_footer"):
+    # --- Accès Propriétaire via Dialogue ---
+    st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) 
+    if not st.session_state.get("authenticated_owner", False):
+        if st.sidebar.button("🐞", key="owner_access_btn_footer"):
             debug_dialog() # Ouvre la boîte de dialogue
     # --- Fin Accès Propriétaire ---
 
-
-    # Pied de page (Footer)
     st.markdown(
     """
     <div style="margin-top: 30px; font-size: 10px; text-align: center; color: gray;">
@@ -452,12 +447,6 @@ def principal():
     """,
     unsafe_allow_html=True
     )
-
-    # Sauvegarder l'état actuel dans session_state
-    # Ces lignes ne sont plus nécessaires car les widgets eux-mêmes mettent à jour st.session_state
-    # st.session_state.groupe = groupe 
-    # st.session_state.semaine = semaine
-    # st.session_state.classe = classe
 
 # Point d'entrée de l'application
 if __name__ == "__main__":
