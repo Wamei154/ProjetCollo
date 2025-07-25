@@ -29,6 +29,7 @@ def aplatir_liste(liste_imbriquee):
     return [' '.join(sous_liste) for sous_liste in liste_imbriquee]
 
 def extract_date(cell_str, year):
+    """Extrait la date d'une chaîne de cellule et l'associe à l'année donnée."""
     match = re.search(r'\((\d{2}/\d{2})\)', cell_str)
     if match:
         date_str = match.group(1)
@@ -36,7 +37,7 @@ def extract_date(cell_str, year):
         try:
             date_obj = datetime.strptime(full_date_str, "%d/%m/%Y")
             return date_obj
-        except:
+        except ValueError:
             return None
     return None
 
@@ -48,7 +49,14 @@ def to_naive(dt):
 # --- Fonctions de chargement des données ---
 
 @st.cache_data
-def charger_donnees(classe, annee_scolaire=2024):
+def charger_donnees(classe, annee_scolaire_str):
+    """
+    Charge les données du colloscope et de la légende pour une classe et une année scolaire données.
+    annee_scolaire_str est au format "YYYY-YYYY" (ex: "2024-2025").
+    """
+    # Extraire l'année de début pour extract_date
+    annee_numerique = int(annee_scolaire_str.split('-')[0])
+
     fichier_colloscope = chemin_ressource(f'Colloscope{classe}.xlsx')
     fichier_legende = chemin_ressource(f'Legende{classe}.xlsx')
 
@@ -64,7 +72,7 @@ def charger_donnees(classe, annee_scolaire=2024):
     dates_semaines = []
     for cell in feuille_colloscope[1][1:]:
         if cell.value:
-            date_extrait = extract_date(str(cell.value), annee_scolaire)
+            date_extrait = extract_date(str(cell.value), annee_numerique) # Utilise l'année numérique
             dates_semaines.append(date_extrait)
         else:
             dates_semaines.append(None)
@@ -84,13 +92,17 @@ def charger_donnees(classe, annee_scolaire=2024):
     return dictionnaire_donnees, dictionnaire_legende, dates_semaines
 
 @st.cache_data
-def obtenir_vacances(zone="C", annee="2024-2025"):
+def obtenir_vacances(zone="C", annee_scolaire_str="2024-2025"):
+    """
+    Récupère les dates de vacances scolaires pour une zone et une année scolaire données.
+    annee_scolaire_str est au format "YYYY-YYYY".
+    """
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
         "dataset": "fr-en-calendrier-scolaire",
         "rows": 500,
         "refine.zone": f"Zone {zone}",
-        "refine.annee_scolaire": annee,
+        "refine.annee_scolaire": annee_scolaire_str, # Utilise la chaîne de l'année scolaire
     }
     vacances = []
     try:
@@ -106,10 +118,16 @@ def obtenir_vacances(zone="C", annee="2024-2025"):
                     debut = datetime.fromisoformat(start_str)
                     fin = datetime.fromisoformat(end_str)
                     vacances.append((debut, fin))
-                except:
+                except ValueError:
                     pass
 
-        vacances = [(start, end) for start, end in vacances if to_naive(end) < datetime(2024, 9, 16) or to_naive(start) > datetime(2024, 9, 2)]
+        # Filtrer les vacances pour la période pertinente (ajustez si nécessaire)
+        # Exemple: garder les vacances qui ne sont pas trop en dehors de l'année scolaire courante
+        # Ici, j'ai mis des dates fixes pour l'exemple, à adapter si besoin
+        annee_debut = int(annee_scolaire_str.split('-')[0])
+        annee_fin = int(annee_scolaire_str.split('-')[1])
+        vacances = [(start, end) for start, end in vacances if 
+                    (to_naive(end) >= datetime(annee_debut, 9, 1) and to_naive(start) <= datetime(annee_fin, 8, 31))]
 
     except Exception as e:
         st.error(f"Erreur récupération vacances : {e}")
@@ -138,23 +156,27 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     
     return len(dates_semaines)
 
-def enregistrer_parametres(groupe, semaine, classe):
+def enregistrer_parametres(groupe, semaine, classe, annee_scolaire):
+    """Enregistre les paramètres de l'application, y compris l'année scolaire."""
     with open('config.txt', 'w') as fichier:
-        fichier.write(f"{groupe}\n{semaine}\n{classe}")
+        fichier.write(f"{groupe}\n{semaine}\n{classe}\n{annee_scolaire}")
 
 def charger_parametres():
+    """Charge les paramètres de l'application, y compris l'année scolaire."""
     groupe = "G1"
     classe = "1"
     semaine = "1" 
+    annee_scolaire = "2024-2025" # Année scolaire par défaut
 
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
-            if len(lignes) >= 3:
+            if len(lignes) >= 4: # Maintenant 4 lignes attendues
                 groupe = lignes[0].strip()
                 semaine = lignes[1].strip()
                 classe = lignes[2].strip()
-    return groupe, semaine, classe
+                annee_scolaire = lignes[3].strip()
+    return groupe, semaine, classe, annee_scolaire
 
 def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
     tableau = []
@@ -201,12 +223,13 @@ def changer_semaine(sens):
         if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
-def afficher_donnees_colloscope(): # Renommée pour être plus spécifique
+def afficher_donnees_colloscope():
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
+    annee_scolaire = st.session_state.annee_scolaire # Récupère l'année scolaire de session_state
 
-    enregistrer_parametres(groupe, semaine, classe)
+    enregistrer_parametres(groupe, semaine, classe, annee_scolaire)
 
     try:
         semaine_int = int(semaine)
@@ -226,7 +249,7 @@ def afficher_donnees_colloscope(): # Renommée pour être plus spécifique
         st.error("Veuillez entrer un Groupe valide (ex: G1) entre 1 et 20.")
         return
 
-    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe) 
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire) # Passe l'année scolaire
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
@@ -236,10 +259,10 @@ def afficher_donnees_colloscope(): # Renommée pour être plus spécifique
 
 # --- Fonctions d'accès propriétaire (Debug) ---
 
-def afficher_dictionnaires_secrets(classe_selectionnee):
+def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_selectionnee):
     st.subheader("Contenu des dictionnaires")
     try:
-        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee)
+        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_selectionnee)
         
         st.write("### Dictionnaire de Données (`dictionnaire_donnees`)")
         st.json(dictionnaire_donnees)
@@ -257,6 +280,20 @@ def afficher_dictionnaires_secrets(classe_selectionnee):
 def gerer_outils_debug(classe_selectionnee):
     st.subheader("Outils de débogage")
     
+    # Récupérer l'année scolaire actuelle de session_state
+    current_annee_scolaire = st.session_state.get("annee_scolaire", "2024-2025")
+
+    st.write("### Gestion de l'Année Scolaire")
+    annee_scolaire_input = st.text_input("Année Scolaire (ex: 2024-2025)", value=current_annee_scolaire, key="annee_scolaire_input_debug")
+    if st.button("Mettre à jour l'Année Scolaire", key="update_annee_scolaire_btn"):
+        # Mettre à jour la session_state et enregistrer les paramètres
+        st.session_state.annee_scolaire = annee_scolaire_input
+        enregistrer_parametres(st.session_state.groupe, st.session_state.semaine, st.session_state.classe, st.session_state.annee_scolaire)
+        st.success(f"Année scolaire mise à jour à : {annee_scolaire_input}")
+        st.rerun() # Rafraîchir pour que les changements prennent effet
+
+    st.markdown("---")
+
     if st.button("Recharger les données (Colloscope/Légende)", key="reload_data_btn_debug"):
         st.cache_data.clear()
         st.success("Cache des données vidé. Les fichiers Excel seront relus au prochain accès.")
@@ -291,6 +328,19 @@ def debug_dialog():
 # --- Fonction principale de l'application ---
 
 def principal():
+    # Charger les paramètres au début de la fonction principale
+    groupe_default, semaine_saved, classe_default, annee_scolaire_default = charger_parametres()
+
+    # Initialiser st.session_state si ce n'est pas déjà fait
+    if "groupe" not in st.session_state:
+        st.session_state.groupe = groupe_default
+    if "semaine" not in st.session_state:
+        st.session_state.semaine = semaine_saved
+    if "classe" not in st.session_state:
+        st.session_state.classe = classe_default
+    if "annee_scolaire" not in st.session_state:
+        st.session_state.annee_scolaire = annee_scolaire_default
+
     # Définition des onglets principaux de l'application
     tabs_names = ["Colloscope"]
     if st.session_state.get("authenticated_owner", False):
@@ -303,7 +353,7 @@ def principal():
         st.header("Colloscope")
         
         # Bouton EDT EPS dans la partie principale si pas dans la sidebar
-        if st.sidebar.button('EDT EPS', key="edt_eps_btn_main"):
+        if st.button('EDT EPS', key="edt_eps_btn_main"):
             st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
             st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
@@ -311,7 +361,8 @@ def principal():
 
         date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        _, _, dates_semaines_initiales = charger_donnees(classe="1") 
+        # Passer l'année scolaire actuelle à charger_donnees
+        _, _, dates_semaines_initiales = charger_donnees(st.session_state.classe, st.session_state.annee_scolaire) 
         
         semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
         
@@ -322,13 +373,11 @@ def principal():
 
         semaine_auto = str(min(semaines_ecoulees, 30))
 
-        groupe_default, semaine_saved, classe_default = charger_parametres()
+        # Utiliser les valeurs de session_state pour les widgets
+        st.session_state.classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(st.session_state.classe) - 1, key="classe_select")
+        st.session_state.groupe = st.sidebar.text_input("Groupe", value=st.session_state.groupe, key="groupe_input")
+        st.session_state.semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_auto) - 1 if int(semaine_auto) -1 >= 0 else 0, key="semaine_select")
 
-        semaine_default = semaine_saved if os.path.exists('config.txt') else semaine_auto
-
-        classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(classe_default) - 1, key="classe_select")
-        groupe = st.sidebar.text_input("Groupe", value=groupe_default, key="groupe_input")
-        semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_default) - 1, key="semaine_select")
 
         cols = st.sidebar.columns(3)
         if cols[0].button("Afficher", key="afficher_btn"):
@@ -348,9 +397,9 @@ def principal():
         with main_tabs[1]: # main_tabs[1] sera l'onglet "Outils Propriétaire"
             # Bouton de déconnexion dans l'onglet Propriétaire
             st.subheader("Outils Propriétaire")
-            if st.button("Déconnexion", key="owner_logout_btn_main"): # Moved here for consistency
+            if st.button("Déconnexion", key="owner_logout_btn_main"): 
                 st.session_state["authenticated_owner"] = False
-                st.rerun() # Rafraîchir pour masquer les outils
+                st.rerun() 
 
             st.markdown("---")
             # Sous-onglets pour les outils de débogage
@@ -358,16 +407,17 @@ def principal():
 
             with st_debug_tabs[0]:
                 if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
-                    afficher_dictionnaires_secrets(classe)
+                    # Passer l'année scolaire actuelle aux dictionnaires
+                    afficher_dictionnaires_secrets(st.session_state.classe, st.session_state.annee_scolaire)
             
             with st_debug_tabs[1]:
-                gerer_outils_debug(classe)
+                # Passer la classe actuelle aux outils de debug
+                gerer_outils_debug(st.session_state.classe)
 
     # --- Accès Propriétaire via Dialogue (maintenant en bas de la sidebar) ---
-    # Utilisation d'un conteneur pour positionner le bouton en bas de la sidebar
     st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # Espace pour pousser le bouton vers le bas
     if not st.session_state.get("authenticated_owner", False): # N'affiche le bouton que si non connecté
-        if st.sidebar.button("🐞", key="owner_access_btn_footer"):
+        if st.sidebar.button("🐞 Accès Propriétaire", key="owner_access_btn_footer"):
             debug_dialog() # Ouvre la boîte de dialogue
     # --- Fin Accès Propriétaire ---
 
@@ -382,10 +432,10 @@ def principal():
     unsafe_allow_html=True
     )
 
-    # Sauvegarder l'état actuel dans session_state
-    st.session_state.groupe = groupe
-    st.session_state.semaine = semaine
-    st.session_state.classe = classe
+    # Sauvegarder l'état actuel dans session_state (redondant si déjà fait par les widgets, mais assure la persistance)
+    # st.session_state.groupe = groupe # Ces lignes ne sont plus nécessaires si les widgets mettent à jour session_state directement
+    # st.session_state.semaine = semaine
+    # st.session_state.classe = classe
 
 # Point d'entrée de l'application
 if __name__ == "__main__":
