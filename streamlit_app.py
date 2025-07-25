@@ -46,6 +46,27 @@ def to_naive(dt):
         return dt.replace(tzinfo=None)
     return dt
 
+def detecter_annee_scolaire_actuelle(date_actuelle=None):
+    """
+    Détecte l'année scolaire actuelle au format "YYYY-YYYY".
+    Une année scolaire commence en septembre.
+    """
+    if date_actuelle is None:
+        date_actuelle = datetime.now()
+
+    annee_courante = date_actuelle.year
+    mois_courant = date_actuelle.month
+
+    if mois_courant >= 9: # Si on est en Septembre ou plus tard, l'année scolaire commence cette année
+        annee_debut = annee_courante
+        annee_fin = annee_courante + 1
+    else: # Si on est avant Septembre, l'année scolaire a commencé l'année précédente
+        annee_debut = annee_courante - 1
+        annee_fin = annee_courante
+    
+    return f"{annee_debut}-{annee_fin}"
+
+
 # --- Fonctions de chargement des données ---
 
 @st.cache_data
@@ -54,7 +75,7 @@ def charger_donnees(classe, annee_scolaire_str):
     Charge les données du colloscope et de la légende pour une classe et une année scolaire données.
     annee_scolaire_str est au format "YYYY-YYYY" (ex: "2024-2025").
     """
-    # Extraire l'année de début pour extract_date
+    # Extraire l'année de début pour extract_date (ex: 2024 de "2024-2025")
     annee_numerique = int(annee_scolaire_str.split('-')[0])
 
     fichier_colloscope = chemin_ressource(f'Colloscope{classe}.xlsx')
@@ -92,17 +113,21 @@ def charger_donnees(classe, annee_scolaire_str):
     return dictionnaire_donnees, dictionnaire_legende, dates_semaines
 
 @st.cache_data
-def obtenir_vacances(zone="C", annee_scolaire_str="2024-2025"):
+def obtenir_vacances(zone="C", annee_scolaire_str=None):
     """
     Récupère les dates de vacances scolaires pour une zone et une année scolaire données.
     annee_scolaire_str est au format "YYYY-YYYY".
     """
+    # Si annee_scolaire_str n'est pas fourni, le détecter automatiquement
+    if annee_scolaire_str is None:
+        annee_scolaire_str = detecter_annee_scolaire_actuelle()
+
     url = "https://data.education.gouv.fr/api/records/1.0/search/"
     params = {
         "dataset": "fr-en-calendrier-scolaire",
         "rows": 500,
         "refine.zone": f"Zone {zone}",
-        "refine.annee_scolaire": annee_scolaire_str, # Utilise la chaîne de l'année scolaire
+        "refine.annee_scolaire": annee_scolaire_str, # Utilise la chaîne de l'année scolaire détectée
     }
     vacances = []
     try:
@@ -121,13 +146,15 @@ def obtenir_vacances(zone="C", annee_scolaire_str="2024-2025"):
                 except ValueError:
                     pass
 
-        # Filtrer les vacances pour la période pertinente (ajustez si nécessaire)
-        # Exemple: garder les vacances qui ne sont pas trop en dehors de l'année scolaire courante
-        # Ici, j'ai mis des dates fixes pour l'exemple, à adapter si besoin
-        annee_debut = int(annee_scolaire_str.split('-')[0])
-        annee_fin = int(annee_scolaire_str.split('-')[1])
+        # Filtrer les vacances pour la période pertinente (début septembre à fin août de l'année suivante)
+        annee_debut_num = int(annee_scolaire_str.split('-')[0])
+        annee_fin_num = int(annee_scolaire_str.split('-')[1])
+        
+        periode_debut = datetime(annee_debut_num, 9, 1)
+        periode_fin = datetime(annee_fin_num, 8, 31)
+
         vacances = [(start, end) for start, end in vacances if 
-                    (to_naive(end) >= datetime(annee_debut, 9, 1) and to_naive(start) <= datetime(annee_fin, 8, 31))]
+                    (to_naive(end) >= periode_debut and to_naive(start) <= periode_fin)]
 
     except Exception as e:
         st.error(f"Erreur récupération vacances : {e}")
@@ -156,27 +183,25 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     
     return len(dates_semaines)
 
-def enregistrer_parametres(groupe, semaine, classe, annee_scolaire):
-    """Enregistre les paramètres de l'application, y compris l'année scolaire."""
+def enregistrer_parametres(groupe, semaine, classe): # Retire annee_scolaire
+    """Enregistre les paramètres de l'application (groupe, semaine, classe)."""
     with open('config.txt', 'w') as fichier:
-        fichier.write(f"{groupe}\n{semaine}\n{classe}\n{annee_scolaire}")
+        fichier.write(f"{groupe}\n{semaine}\n{classe}")
 
 def charger_parametres():
-    """Charge les paramètres de l'application, y compris l'année scolaire."""
+    """Charge les paramètres de l'application (groupe, semaine, classe)."""
     groupe = "G1"
     classe = "1"
     semaine = "1" 
-    annee_scolaire = "2024-2025" # Année scolaire par défaut
 
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
-            if len(lignes) >= 4: # Maintenant 4 lignes attendues
+            if len(lignes) >= 3: # Revient à 3 lignes attendues
                 groupe = lignes[0].strip()
                 semaine = lignes[1].strip()
                 classe = lignes[2].strip()
-                annee_scolaire = lignes[3].strip()
-    return groupe, semaine, classe, annee_scolaire
+    return groupe, semaine, classe
 
 def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
     tableau = []
@@ -223,13 +248,12 @@ def changer_semaine(sens):
         if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
-def afficher_donnees_colloscope():
+def afficher_donnees_colloscope(annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle en paramètre
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
-    annee_scolaire = st.session_state.annee_scolaire # Récupère l'année scolaire de session_state
 
-    enregistrer_parametres(groupe, semaine, classe, annee_scolaire)
+    enregistrer_parametres(groupe, semaine, classe) # annee_scolaire n'est plus enregistré
 
     try:
         semaine_int = int(semaine)
@@ -249,7 +273,7 @@ def afficher_donnees_colloscope():
         st.error("Veuillez entrer un Groupe valide (ex: G1) entre 1 et 20.")
         return
 
-    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire) # Passe l'année scolaire
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire_actuelle) # Passe l'année scolaire détectée
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
@@ -259,10 +283,10 @@ def afficher_donnees_colloscope():
 
 # --- Fonctions d'accès propriétaire (Debug) ---
 
-def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_selectionnee):
+def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle
     st.subheader("Contenu des dictionnaires")
     try:
-        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_selectionnee)
+        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_actuelle) # Utilise l'année scolaire actuelle
         
         st.write("### Dictionnaire de Données (`dictionnaire_donnees`)")
         st.json(dictionnaire_donnees)
@@ -277,20 +301,10 @@ def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_selection
     except Exception as e:
         st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
 
-def gerer_outils_debug(classe_selectionnee):
+def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle
     st.subheader("Outils de débogage")
     
-    # Récupérer l'année scolaire actuelle de session_state
-    current_annee_scolaire = st.session_state.get("annee_scolaire", "2024-2025")
-
-    st.write("### Gestion de l'Année Scolaire")
-    annee_scolaire_input = st.text_input("Année Scolaire (ex: 2024-2025)", value=current_annee_scolaire, key="annee_scolaire_input_debug")
-    if st.button("Mettre à jour l'Année Scolaire", key="update_annee_scolaire_btn"):
-        # Mettre à jour la session_state et enregistrer les paramètres
-        st.session_state.annee_scolaire = annee_scolaire_input
-        enregistrer_parametres(st.session_state.groupe, st.session_state.semaine, st.session_state.classe, st.session_state.annee_scolaire)
-        st.success(f"Année scolaire mise à jour à : {annee_scolaire_input}")
-        st.rerun() # Rafraîchir pour que les changements prennent effet
+    st.write(f"**Année Scolaire Détectée Automatiquement :** {annee_scolaire_actuelle}") # Affiche l'année détectée
 
     st.markdown("---")
 
@@ -328,8 +342,11 @@ def debug_dialog():
 # --- Fonction principale de l'application ---
 
 def principal():
-    # Charger les paramètres au début de la fonction principale
-    groupe_default, semaine_saved, classe_default, annee_scolaire_default = charger_parametres()
+    # Détecter l'année scolaire au début de chaque exécution
+    annee_scolaire_actuelle = detecter_annee_scolaire_actuelle()
+
+    # Charger les paramètres (groupe, semaine, classe)
+    groupe_default, semaine_saved, classe_default = charger_parametres()
 
     # Initialiser st.session_state si ce n'est pas déjà fait
     if "groupe" not in st.session_state:
@@ -338,8 +355,7 @@ def principal():
         st.session_state.semaine = semaine_saved
     if "classe" not in st.session_state:
         st.session_state.classe = classe_default
-    if "annee_scolaire" not in st.session_state:
-        st.session_state.annee_scolaire = annee_scolaire_default
+    # annee_scolaire n'est plus dans session_state car automatique
 
     # Définition des onglets principaux de l'application
     tabs_names = ["Colloscope"]
@@ -352,7 +368,7 @@ def principal():
     with main_tabs[0]:
         st.header("Colloscope")
         
-        # Bouton EDT EPS dans la partie principale si pas dans la sidebar
+        # Bouton EDT EPS dans la partie principale
         if st.button('EDT EPS', key="edt_eps_btn_main"):
             st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
             st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
@@ -361,8 +377,8 @@ def principal():
 
         date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        # Passer l'année scolaire actuelle à charger_donnees
-        _, _, dates_semaines_initiales = charger_donnees(st.session_state.classe, st.session_state.annee_scolaire) 
+        # Passer l'année scolaire détectée à charger_donnees
+        _, _, dates_semaines_initiales = charger_donnees(st.session_state.classe, annee_scolaire_actuelle) 
         
         semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
         
@@ -370,27 +386,32 @@ def principal():
 
         st.sidebar.write(f"**Date** :  {date_actuelle_str}")
         st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
+        st.sidebar.write(f"**Année scolaire** :  {annee_scolaire_actuelle}") # Afficher l'année scolaire détectée
 
         semaine_auto = str(min(semaines_ecoulees, 30))
 
         # Utiliser les valeurs de session_state pour les widgets
         st.session_state.classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(st.session_state.classe) - 1, key="classe_select")
         st.session_state.groupe = st.sidebar.text_input("Groupe", value=st.session_state.groupe, key="groupe_input")
-        st.session_state.semaine = st.sidebar.selectbox("Semaine",options=[str(i) for i in range(1, 31)],index=int(semaine_auto) - 1 if int(semaine_auto) -1 >= 0 else 0, key="semaine_select")
+        # Correction de l'index pour semaine_select
+        semaine_index_default = int(semaine_auto) - 1
+        if not (0 <= semaine_index_default < len([str(i) for i in range(1, 31)])):
+            semaine_index_default = 0 # Assurez-vous que l'index est valide
+        st.session_state.semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=semaine_index_default, key="semaine_select")
 
 
         cols = st.sidebar.columns(3)
         if cols[0].button("Afficher", key="afficher_btn"):
             st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope()
+            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
         if cols[1].button("◀", key="prev_semaine_btn"):
             changer_semaine(-1)
             st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope()
+            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
         if cols[2].button("▶", key="next_semaine_btn"):
             changer_semaine(1)
             st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope()
+            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
 
     # Contenu de l'onglet "Outils Propriétaire" (seulement si authentifié)
     if st.session_state.get("authenticated_owner", False):
@@ -407,12 +428,12 @@ def principal():
 
             with st_debug_tabs[0]:
                 if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
-                    # Passer l'année scolaire actuelle aux dictionnaires
-                    afficher_dictionnaires_secrets(st.session_state.classe, st.session_state.annee_scolaire)
+                    # Passe la classe et l'année scolaire détectée aux dictionnaires
+                    afficher_dictionnaires_secrets(st.session_state.classe, annee_scolaire_actuelle)
             
             with st_debug_tabs[1]:
-                # Passer la classe actuelle aux outils de debug
-                gerer_outils_debug(st.session_state.classe)
+                # Passe la classe et l'année scolaire détectée aux outils de debug
+                gerer_outils_debug(st.session_state.classe, annee_scolaire_actuelle)
 
     # --- Accès Propriétaire via Dialogue (maintenant en bas de la sidebar) ---
     st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) # Espace pour pousser le bouton vers le bas
@@ -432,8 +453,9 @@ def principal():
     unsafe_allow_html=True
     )
 
-    # Sauvegarder l'état actuel dans session_state (redondant si déjà fait par les widgets, mais assure la persistance)
-    # st.session_state.groupe = groupe # Ces lignes ne sont plus nécessaires si les widgets mettent à jour session_state directement
+    # Sauvegarder l'état actuel dans session_state
+    # Ces lignes ne sont plus nécessaires car les widgets eux-mêmes mettent à jour st.session_state
+    # st.session_state.groupe = groupe 
     # st.session_state.semaine = semaine
     # st.session_state.classe = classe
 
