@@ -327,6 +327,8 @@ def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle):
 # --- Comparateur Excel ---
 
 def comparer_excels(df1, df2, nom_fichier):
+    """Compare structure, première ligne et première colonne entre deux DataFrames."""
+    # Comparaison colonnes et dimensions
     same_cols = list(df1.columns) == list(df2.columns)
     same_shape = df1.shape == df2.shape
 
@@ -341,10 +343,10 @@ def comparer_excels(df1, df2, nom_fichier):
         if not same_shape:
             st.error(f"⚠️ Dimensions différentes dans {nom_fichier} : {df1.shape} vs {df2.shape}")
 
-    # Comparer la première ligne
+    # Comparer la première ligne (valeurs)
     if not df1.empty and not df2.empty:
-        first_row_ref = df1.iloc[0].tolist()
-        first_row_new = df2.iloc[0].tolist()
+        first_row_ref = df1.iloc[0].fillna("").astype(str).tolist()
+        first_row_new = df2.iloc[0].fillna("").astype(str).tolist()
         if first_row_ref == first_row_new:
             st.info(f"✅ Première ligne identique ({nom_fichier})")
         else:
@@ -352,10 +354,10 @@ def comparer_excels(df1, df2, nom_fichier):
             st.write("Référence :", first_row_ref)
             st.write("Nouveau :", first_row_new)
 
-    # Comparer la première colonne
+    # Comparer la première colonne (valeurs)
     if df1.shape[0] > 0 and df2.shape[0] > 0:
-        first_col_ref = df1.iloc[:,0].tolist()
-        first_col_new = df2.iloc[:,0].tolist()
+        first_col_ref = df1.iloc[:,0].fillna("").astype(str).tolist()
+        first_col_new = df2.iloc[:,0].fillna("").astype(str).tolist()
         if first_col_ref == first_col_new:
             st.info(f"✅ Première colonne identique ({nom_fichier})")
         else:
@@ -395,17 +397,18 @@ def principal():
     if "classe" not in st.session_state:
         st.session_state.classe = classe_default
 
-    # Définition des onglets principaux
+    # Définition des onglets principaux de l'application
     tabs_names = ["Colloscope"]
     if st.session_state.get("authenticated_owner", False):
         tabs_names.append("Outils Propriétaire")
     
     main_tabs = st.tabs(tabs_names)
 
-    # Onglet Colloscope
+    # Contenu de l'onglet "Colloscope" (toujours visible)
     with main_tabs[0]:
         st.header("Colloscope")
         
+        # Bouton EDT EPS dans la partie principale
         if st.button('EDT EPS', key="edt_eps_btn_main"):
             st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
             st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
@@ -414,65 +417,104 @@ def principal():
 
         date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
+        # Passer l'année scolaire détectée à charger_donnees
         _, _, dates_semaines_initiales = charger_donnees(st.session_state.classe, annee_scolaire_actuelle) 
+        
         semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
+        
         date_actuelle_str = date_actuelle.strftime("%d/%m")
 
-        st.sidebar.write(f"Aujourd'hui : {date_actuelle_str}")
-        st.sidebar.write(f"Semaine actuelle : {semaines_ecoulees}")
+        st.sidebar.write(f"**Date** :  {date_actuelle_str}")
+        st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
+        st.sidebar.write(f"**Année scolaire** :  {annee_scolaire_actuelle}") # Afficher l'année scolaire détectée
 
-        st.session_state.groupe = st.sidebar.text_input("Groupe :", value=st.session_state.groupe, key="input_groupe")
-        st.session_state.semaine = st.sidebar.text_input("Semaine :", value=st.session_state.semaine, key="input_semaine")
-        st.session_state.classe = st.sidebar.selectbox("Classe :", ["1", "2"], index=int(st.session_state.classe)-1, key="select_classe")
+        semaine_auto = str(min(semaines_ecoulees, 30))
 
-        col1, col2 = st.columns([1,1])
-        with col1:
-            st.button("⏪ Semaine précédente", on_click=changer_semaine, args=(-1,), key="prev_week_btn")
-        with col2:
-            st.button("Semaine suivante ⏩", on_click=changer_semaine, args=(1,), key="next_week_btn")
+        # Utiliser les valeurs de session_state pour les widgets
+        st.session_state.classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(st.session_state.classe) - 1, key="classe_select")
+        st.session_state.groupe = st.sidebar.text_input("Groupe", value=st.session_state.groupe, key="groupe_input")
+        # Correction de l'index pour semaine_select
+        semaine_index_default = int(semaine_auto) - 1
+        if not (0 <= semaine_index_default < len([str(i) for i in range(1, 31)])):
+            semaine_index_default = 0 # Assurez-vous que l'index est valide
+        st.session_state.semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=semaine_index_default, key="semaine_select")
 
-        afficher_donnees_colloscope(annee_scolaire_actuelle)
 
-    # Onglet Outils Propriétaire
-    if "Outils Propriétaire" in tabs_names:
-        with main_tabs[1]:
-            st.header("Outils Propriétaire")
+        cols = st.sidebar.columns(3)
+        if cols[0].button("Afficher", key="afficher_btn"):
+            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
+        if cols[1].button("◀", key="prev_semaine_btn"):
+            changer_semaine(-1)
+            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
+        if cols[2].button("▶", key="next_semaine_btn"):
+            changer_semaine(1)
+            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
+            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
 
-            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
-            
+    # Contenu de l'onglet "Outils Propriétaire" 
+    if st.session_state.get("authenticated_owner", False):
+        with main_tabs[1]: # main_tabs[1] sera l'onglet "Outils Propriétaire"
+            st.subheader("Outils Propriétaire")
+            if st.button("Déconnexion", key="owner_logout_btn_main"): 
+                st.session_state["authenticated_owner"] = False
+                st.rerun() 
+
+            st.markdown("---")
+            # Sous-onglets pour les outils de débogage
+            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug", "Comparateur Excel"])
+
             with st_debug_tabs[0]:
-                afficher_dictionnaires_secrets(st.session_state.classe, annee_scolaire_actuelle)
+                if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
+                    # Passe la classe et l'année scolaire détectée aux dictionnaires
+                    afficher_dictionnaires_secrets(st.session_state.classe, annee_scolaire_actuelle)
+            
             with st_debug_tabs[1]:
                 gerer_outils_debug(st.session_state.classe, annee_scolaire_actuelle)
 
-            # 🔹 Comparateur Excel
-            st_comp_tabs = st.tabs(["Comparateur Excel"])
-            with st_comp_tabs[0]:
-                st.subheader("Comparer Colloscope & Légende")
+            with st_debug_tabs[2]:
+                st.subheader("Comparateur Excel")
 
-                # Fichiers de référence (ceux déjà présents)
+                # Fichiers de référence (ceux déjà présents sur le serveur)
                 fichier_ref_colloscope = chemin_ressource(f'Colloscope{st.session_state.classe}.xlsx')
                 fichier_ref_legende = chemin_ressource(f'Legende{st.session_state.classe}.xlsx')
 
                 uploaded_colloscope = st.file_uploader("Uploader un nouveau Colloscope", type=["xlsx"], key="new_colloscope")
                 uploaded_legende = st.file_uploader("Uploader une nouvelle Légende", type=["xlsx"], key="new_legende")
 
-                # Comparaison Colloscope
-                if uploaded_colloscope is not None:
-                    df_ref = pd.read_excel(fichier_ref_colloscope)
-                    df_new = pd.read_excel(uploaded_colloscope)
-                    comparer_excels(df_ref, df_new, f"Colloscope{st.session_state.classe}.xlsx")
+                try:
+                    # Comparaison Colloscope
+                    if uploaded_colloscope is not None:
+                        df_ref = pd.read_excel(fichier_ref_colloscope)
+                        df_new = pd.read_excel(uploaded_colloscope)
+                        comparer_excels(df_ref, df_new, f"Colloscope{st.session_state.classe}.xlsx")
 
-                # Comparaison Légende
-                if uploaded_legende is not None:
-                    df_ref = pd.read_excel(fichier_ref_legende)
-                    df_new = pd.read_excel(uploaded_legende)
-                    comparer_excels(df_ref, df_new, f"Legende{st.session_state.classe}.xlsx")
+                    # Comparaison Légende
+                    if uploaded_legende is not None:
+                        df_ref = pd.read_excel(fichier_ref_legende)
+                        df_new = pd.read_excel(uploaded_legende)
+                        comparer_excels(df_ref, df_new, f"Legende{st.session_state.classe}.xlsx")
 
-    # Bouton d'accès propriétaire (affiché uniquement si non authentifié)
+                except Exception as e:
+                    st.error(f"Erreur lors de la comparaison : {e}")
+
+    # --- Accès Propriétaire via Dialogue ---
+    st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) 
     if not st.session_state.get("authenticated_owner", False):
-        if st.sidebar.button("🔑 Accès propriétaire"):
-            debug_dialog()
+        if st.sidebar.button("🐞", key="owner_access_btn_footer"):
+            debug_dialog() # Ouvre la boîte de dialogue
+    # --- Fin Accès Propriétaire ---
 
+    st.markdown(
+    """
+    <div style="margin-top: 30px; font-size: 10px; text-align: center; color: gray;">
+        Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier, ChatGPT, Gémini et de DAMBRY Paul
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
+
+# Point d'entrée de l'application
 if __name__ == "__main__":
     principal()
