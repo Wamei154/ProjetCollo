@@ -339,7 +339,42 @@ def debug_dialog():
             st.error("Code incorrect.")
             st.session_state["authenticated_owner"] = False
 
-# --- Fonction principale de l'application ---
+def comparer_excels(df1, df2, nom_fichier):
+    same_cols = list(df1.columns) == list(df2.columns)
+    same_shape = df1.shape == df2.shape
+
+    st.write(f"### Résultat comparaison : {nom_fichier}")
+    if same_cols and same_shape:
+        st.success(f"✅ {nom_fichier} : même structure (colonnes + dimensions).")
+    else:
+        if not same_cols:
+            st.error(f"⚠️ Colonnes différentes dans {nom_fichier} :")
+            st.write("Référence :", list(df1.columns))
+            st.write("Nouveau :", list(df2.columns))
+        if not same_shape:
+            st.error(f"⚠️ Dimensions différentes dans {nom_fichier} : {df1.shape} vs {df2.shape}")
+
+    # Comparer la première ligne
+    if not df1.empty and not df2.empty:
+        first_row_ref = df1.iloc[0].tolist()
+        first_row_new = df2.iloc[0].tolist()
+        if first_row_ref == first_row_new:
+            st.info(f"✅ Première ligne identique ({nom_fichier})")
+        else:
+            st.warning(f"⚠️ Différences dans la première ligne ({nom_fichier})")
+            st.write("Référence :", first_row_ref)
+            st.write("Nouveau :", first_row_new)
+
+    # Comparer la première colonne
+    if df1.shape[0] > 0 and df2.shape[0] > 0:
+        first_col_ref = df1.iloc[:,0].tolist()
+        first_col_new = df2.iloc[:,0].tolist()
+        if first_col_ref == first_col_new:
+            st.info(f"✅ Première colonne identique ({nom_fichier})")
+        else:
+            st.warning(f"⚠️ Différences dans la première colonne ({nom_fichier})")
+            st.write("Référence :", first_col_ref)
+            st.write("Nouveau :", first_col_new)
 
 def principal():
     # Détecter l'année scolaire au début de chaque exécution
