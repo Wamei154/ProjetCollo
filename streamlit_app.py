@@ -183,7 +183,7 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     
     return len(dates_semaines)
 
-def enregistrer_parametres(groupe, semaine, classe): # Retire annee_scolaire
+def enregistrer_parametres(groupe, semaine, classe):
     """Enregistre les paramètres de l'application (groupe, semaine, classe)."""
     with open('config.txt', 'w') as fichier:
         fichier.write(f"{groupe}\n{semaine}\n{classe}")
@@ -197,7 +197,7 @@ def charger_parametres():
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
-            if len(lignes) >= 3: # Revient à 3 lignes attendues
+            if len(lignes) >= 3:
                 groupe = lignes[0].strip()
                 semaine = lignes[1].strip()
                 classe = lignes[2].strip()
@@ -248,12 +248,12 @@ def changer_semaine(sens):
         if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
-def afficher_donnees_colloscope(annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle en paramètre
+def afficher_donnees_colloscope(annee_scolaire_actuelle):
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
 
-    enregistrer_parametres(groupe, semaine, classe) # annee_scolaire n'est plus enregistré
+    enregistrer_parametres(groupe, semaine, classe)
 
     try:
         semaine_int = int(semaine)
@@ -273,7 +273,7 @@ def afficher_donnees_colloscope(annee_scolaire_actuelle): # Ajoute annee_scolair
         st.error("Veuillez entrer un Groupe valide (ex: G1) entre 1 et 20.")
         return
 
-    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire_actuelle) # Passe l'année scolaire détectée
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire_actuelle)
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
@@ -283,10 +283,10 @@ def afficher_donnees_colloscope(annee_scolaire_actuelle): # Ajoute annee_scolair
 
 # --- Fonctions d'accès propriétaire (Debug) ---
 
-def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle
+def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle):
     st.subheader("Contenu des dictionnaires")
     try:
-        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_actuelle) # Utilise l'année scolaire actuelle
+        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_actuelle)
         
         st.write("### Dictionnaire de Données (`dictionnaire_donnees`)")
         st.json(dictionnaire_donnees)
@@ -301,10 +301,10 @@ def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle)
     except Exception as e:
         st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
 
-def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle
+def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle):
     st.subheader("Outils de débogage")
     
-    st.write(f"**Année Scolaire Détectée Automatiquement :** {annee_scolaire_actuelle}") # Affiche l'année détectée
+    st.write(f"**Année Scolaire Détectée Automatiquement :** {annee_scolaire_actuelle}")
 
     st.markdown("---")
 
@@ -324,20 +324,7 @@ def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle): # Ajoute a
     st.write("Contenu de `st.session_state`:")
     st.json(st.session_state.to_dict())
 
-# --- Dialogue d'authentification pour le debug ---
-@st.dialog("Accès Propriétaire")
-def debug_dialog():
-    st.write("Veuillez entrer le code secret pour accéder aux outils de débogage.")
-    code_secret_input = st.text_input("Code secret", type="password", key="dialog_secret_code")
-
-    if st.button("Valider l'accès"):
-        if code_secret_input == CODE_PROPRIETAIRE:
-            st.session_state["authenticated_owner"] = True
-            st.success("Accès accordé !")
-            st.rerun() 
-        else:
-            st.error("Code incorrect.")
-            st.session_state["authenticated_owner"] = False
+# --- Comparateur Excel ---
 
 def comparer_excels(df1, df2, nom_fichier):
     same_cols = list(df1.columns) == list(df2.columns)
@@ -376,6 +363,23 @@ def comparer_excels(df1, df2, nom_fichier):
             st.write("Référence :", first_col_ref)
             st.write("Nouveau :", first_col_new)
 
+# --- Dialogue d'authentification pour le debug ---
+@st.dialog("Accès Propriétaire")
+def debug_dialog():
+    st.write("Veuillez entrer le code secret pour accéder aux outils de débogage.")
+    code_secret_input = st.text_input("Code secret", type="password", key="dialog_secret_code")
+
+    if st.button("Valider l'accès"):
+        if code_secret_input == CODE_PROPRIETAIRE:
+            st.session_state["authenticated_owner"] = True
+            st.success("Accès accordé !")
+            st.rerun() 
+        else:
+            st.error("Code incorrect.")
+            st.session_state["authenticated_owner"] = False
+
+# --- Fonction principale de l'application ---
+
 def principal():
     # Détecter l'année scolaire au début de chaque exécution
     annee_scolaire_actuelle = detecter_annee_scolaire_actuelle()
@@ -391,18 +395,17 @@ def principal():
     if "classe" not in st.session_state:
         st.session_state.classe = classe_default
 
-    # Définition des onglets principaux de l'application
+    # Définition des onglets principaux
     tabs_names = ["Colloscope"]
     if st.session_state.get("authenticated_owner", False):
         tabs_names.append("Outils Propriétaire")
     
     main_tabs = st.tabs(tabs_names)
 
-    # Contenu de l'onglet "Colloscope" (toujours visible)
+    # Onglet Colloscope
     with main_tabs[0]:
         st.header("Colloscope")
         
-        # Bouton EDT EPS dans la partie principale
         if st.button('EDT EPS', key="edt_eps_btn_main"):
             st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
             st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
@@ -411,78 +414,8 @@ def principal():
 
         date_actuelle = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         
-        # Passer l'année scolaire détectée à charger_donnees
         _, _, dates_semaines_initiales = charger_donnees(st.session_state.classe, annee_scolaire_actuelle) 
-        
         semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
-        
         date_actuelle_str = date_actuelle.strftime("%d/%m")
 
-        st.sidebar.write(f"**Date** :  {date_actuelle_str}")
-        st.sidebar.write(f"**N° semaine actuelle** :  {semaines_ecoulees}")
-        st.sidebar.write(f"**Année scolaire** :  {annee_scolaire_actuelle}") # Afficher l'année scolaire détectée
-
-        semaine_auto = str(min(semaines_ecoulees, 30))
-
-        # Utiliser les valeurs de session_state pour les widgets
-        st.session_state.classe = st.sidebar.selectbox("TSI", options=["1", "2"], index=int(st.session_state.classe) - 1, key="classe_select")
-        st.session_state.groupe = st.sidebar.text_input("Groupe", value=st.session_state.groupe, key="groupe_input")
-        # Correction de l'index pour semaine_select
-        semaine_index_default = int(semaine_auto) - 1
-        if not (0 <= semaine_index_default < len([str(i) for i in range(1, 31)])):
-            semaine_index_default = 0 # Assurez-vous que l'index est valide
-        st.session_state.semaine = st.sidebar.selectbox("Semaine", options=[str(i) for i in range(1, 31)], index=semaine_index_default, key="semaine_select")
-
-
-        cols = st.sidebar.columns(3)
-        if cols[0].button("Afficher", key="afficher_btn"):
-            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
-        if cols[1].button("◀", key="prev_semaine_btn"):
-            changer_semaine(-1)
-            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
-        if cols[2].button("▶", key="next_semaine_btn"):
-            changer_semaine(1)
-            st.sidebar.info("Veuillez vérifier votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope(annee_scolaire_actuelle) # Passe l'année scolaire détectée
-
-    # Contenu de l'onglet "Outils Propriétaire" 
-    if st.session_state.get("authenticated_owner", False):
-        with main_tabs[1]: # main_tabs[1] sera l'onglet "Outils Propriétaire"
-            st.subheader("Outils Propriétaire")
-            if st.button("Déconnexion", key="owner_logout_btn_main"): 
-                st.session_state["authenticated_owner"] = False
-                st.rerun() 
-
-            st.markdown("---")
-            # Sous-onglets pour les outils de débogage
-            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
-
-            with st_debug_tabs[0]:
-                if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
-                    # Passe la classe et l'année scolaire détectée aux dictionnaires
-                    afficher_dictionnaires_secrets(st.session_state.classe, annee_scolaire_actuelle)
-            
-            with st_debug_tabs[1]:
-                gerer_outils_debug(st.session_state.classe, annee_scolaire_actuelle)
-
-    # --- Accès Propriétaire via Dialogue ---
-    st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) 
-    if not st.session_state.get("authenticated_owner", False):
-        if st.sidebar.button("🐞", key="owner_access_btn_footer"):
-            debug_dialog() # Ouvre la boîte de dialogue
-    # --- Fin Accès Propriétaire ---
-
-    st.markdown(
-    """
-    <div style="margin-top: 30px; font-size: 10px; text-align: center; color: gray;">
-        Fait par BERRY Mael, avec l'aide de SOUVELAIN Gauthier, ChatGPT, Gémini et de DAMBRY Paul
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-# Point d'entrée de l'application
-if __name__ == "__main__":
-    principal()
+        st.sidebar.write(f
