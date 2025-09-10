@@ -13,7 +13,13 @@ from google.oauth2.service_account import Credentials
 import io
 import json
 classe = "1"
-print(DRIVE_FILE_ID.get(f"Colloscope{classe}", "Clé introuvable"))
+print(DRIVE_FILE_IDS.get(f"Colloscope{classe}", "Clé introuvable"))
+DRIVE_FILE_IDS = {
+    "Colloscope1.xlsx": "ID_DRIVE_COLLOSCOPE1",
+    "Legende1": "ID_DRIVE_LEGENDE1",
+    "Colloscope2": "ID_DRIVE_COLLOSCOPE2",
+    "Legende2": "ID_DRIVE_LEGENDE2"
+}
 
 st.set_page_config(page_title="Colloscope")
 
