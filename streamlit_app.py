@@ -27,7 +27,7 @@ CODE_PROPRIETAIRE = "debug123"
 # --- Google Drive ---
 SERVICE_ACCOUNT_FILE = "colloscopeprepatsi-438b460546e7.json"
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 service = build('drive', 'v3', credentials=creds)
 
 DRIVE_FILE_IDS = {
