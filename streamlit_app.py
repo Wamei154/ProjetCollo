@@ -418,4 +418,61 @@ def principal():
         semaines_ecoulees = semaine_actuelle(dates_semaines_initiales, date_actuelle)
         date_actuelle_str = date_actuelle.strftime("%d/%m")
 
-        st.sidebar.write(f
+        st.sidebar.write(f"Aujourd'hui : {date_actuelle_str}")
+        st.sidebar.write(f"Semaine actuelle : {semaines_ecoulees}")
+
+        st.session_state.groupe = st.sidebar.text_input("Groupe :", value=st.session_state.groupe, key="input_groupe")
+        st.session_state.semaine = st.sidebar.text_input("Semaine :", value=st.session_state.semaine, key="input_semaine")
+        st.session_state.classe = st.sidebar.selectbox("Classe :", ["1", "2"], index=int(st.session_state.classe)-1, key="select_classe")
+
+        col1, col2 = st.columns([1,1])
+        with col1:
+            st.button("⏪ Semaine précédente", on_click=changer_semaine, args=(-1,), key="prev_week_btn")
+        with col2:
+            st.button("Semaine suivante ⏩", on_click=changer_semaine, args=(1,), key="next_week_btn")
+
+        afficher_donnees_colloscope(annee_scolaire_actuelle)
+
+    # Onglet Outils Propriétaire
+    if "Outils Propriétaire" in tabs_names:
+        with main_tabs[1]:
+            st.header("Outils Propriétaire")
+
+            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
+            
+            with st_debug_tabs[0]:
+                afficher_dictionnaires_secrets(st.session_state.classe, annee_scolaire_actuelle)
+            with st_debug_tabs[1]:
+                gerer_outils_debug(st.session_state.classe, annee_scolaire_actuelle)
+
+            # 🔹 Comparateur Excel
+            st_comp_tabs = st.tabs(["Comparateur Excel"])
+            with st_comp_tabs[0]:
+                st.subheader("Comparer Colloscope & Légende")
+
+                # Fichiers de référence (ceux déjà présents)
+                fichier_ref_colloscope = chemin_ressource(f'Colloscope{st.session_state.classe}.xlsx')
+                fichier_ref_legende = chemin_ressource(f'Legende{st.session_state.classe}.xlsx')
+
+                uploaded_colloscope = st.file_uploader("Uploader un nouveau Colloscope", type=["xlsx"], key="new_colloscope")
+                uploaded_legende = st.file_uploader("Uploader une nouvelle Légende", type=["xlsx"], key="new_legende")
+
+                # Comparaison Colloscope
+                if uploaded_colloscope is not None:
+                    df_ref = pd.read_excel(fichier_ref_colloscope)
+                    df_new = pd.read_excel(uploaded_colloscope)
+                    comparer_excels(df_ref, df_new, f"Colloscope{st.session_state.classe}.xlsx")
+
+                # Comparaison Légende
+                if uploaded_legende is not None:
+                    df_ref = pd.read_excel(fichier_ref_legende)
+                    df_new = pd.read_excel(uploaded_legende)
+                    comparer_excels(df_ref, df_new, f"Legende{st.session_state.classe}.xlsx")
+
+    # Bouton d'accès propriétaire (affiché uniquement si non authentifié)
+    if not st.session_state.get("authenticated_owner", False):
+        if st.sidebar.button("🔑 Accès propriétaire"):
+            debug_dialog()
+
+if __name__ == "__main__":
+    principal()
