@@ -12,39 +12,45 @@ from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2.service_account import Credentials
 import io
 import json
-classe = "1"
-print(DRIVE_FILE_IDS.get(f"Colloscope{classe}", "Clé introuvable"))
-DRIVE_FILE_IDS = {
-    "Colloscope1.xlsx": "ID_DRIVE_COLLOSCOPE1",
-    "Legende1": "ID_DRIVE_LEGENDE1",
-    "Colloscope2": "ID_DRIVE_COLLOSCOPE2",
-    "Legende2": "ID_DRIVE_LEGENDE2"
-}
 
+# Configuration de la page Streamlit
 st.set_page_config(page_title="Colloscope")
 
-# --- Logo ---
-with open("logo_prepa.png", "rb") as img_file:
-    b64_data = base64.b64encode(img_file.read()).decode()
-html_code = f'''<div style="text-align: center; margin-bottom: 80px;">
-<a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">
-<img src="data:image/png;base64,{b64_data}" width="150"></a></div>'''
-st.sidebar.markdown(html_code, unsafe_allow_html=True)
+# --- Logo (base64 pour l'intégration) ---
+# Note : Pour que cela fonctionne, assurez-vous que 'logo_prepa.png' est dans le même répertoire.
+try:
+    with open("logo_prepa.png", "rb") as img_file:
+        b64_data = base64.b64encode(img_file.read()).decode()
+    html_code = f'''<div style="text-align: center; margin-bottom: 80px;">
+    <a href="https://sites.google.com/site/cpgetsimarcelsembat/" target="_blank">
+    <img src="data:image/png;base64,{b64_data}" width="150"></a></div>'''
+    st.sidebar.markdown(html_code, unsafe_allow_html=True)
+except FileNotFoundError:
+    st.sidebar.warning("Le fichier 'logo_prepa.png' n'a pas été trouvé. Veuillez le placer dans le même dossier que le script.")
 
 # --- Code propriétaire ---
 CODE_PROPRIETAIRE = "debug123"
 
-# --- Google Drive ---
-sa_info = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"]["json"])
-
+# --- Connexion Google Drive ---
+# Utilisation de st.secrets pour une gestion sécurisée des identifiants
+try:
+    sa_info = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"]["json"])
+except KeyError:
+    st.error("Les secrets Streamlit pour le compte de service Google ne sont pas configurés. "
+             "Veuillez ajouter le JSON du compte de service dans votre fichier secrets.toml.")
+    sa_info = {} # Reste pour éviter une erreur
+    
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
-credentials = service_account.Credentials.from_service_account_info(sa_info)
-credentials = credentials.with_scopes(SCOPES)
+if sa_info:
+    credentials = service_account.Credentials.from_service_account_info(sa_info)
+    credentials = credentials.with_scopes(SCOPES)
+    # Initialiser le service Drive
+    service = build("drive", "v3", credentials=credentials)
+else:
+    service = None
 
-# --- Initialiser le service Drive ---
-service = build("drive", "v3", credentials=credentials)
-
+# Remplacer ces ID par les vôtres
 DRIVE_FILE_IDS = {
     "Colloscope1.xlsx": "ID_DRIVE_COLLOSCOPE1",
     "Legende1": "ID_DRIVE_LEGENDE1",
@@ -89,21 +95,36 @@ def detecter_annee_scolaire_actuelle(date_actuelle=None):
 # --- Google Drive: charger Excel ---
 @st.cache_data
 def charger_excel_drive(file_id):
-    request = service.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while not done:
-        status, done = downloader.next_chunk()
-    fh.seek(0)
-    return load_workbook(fh)
+    if not service:
+        st.error("Le service Drive n'est pas initialisé.")
+        return None
+    try:
+        request = service.files().get_media(fileId=file_id)
+        fh = io.BytesIO()
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
+        fh.seek(0)
+        return load_workbook(fh)
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du fichier Excel depuis Drive: {e}")
+        return None
 
 # --- Charger données Colloscope/Légende ---
 @st.cache_data
 def charger_donnees(classe, annee_scolaire_str):
+    if not service:
+        return {}, {}, []
     annee_numerique = int(annee_scolaire_str.split('-')[0])
-    excel_colloscope = charger_excel_drive(DRIVE_FILE_IDS[f'Colloscope{classe}'])
+    
+    # Correction de la KeyError: Ajout de l'extension .xlsx au nom du fichier
+    excel_colloscope = charger_excel_drive(DRIVE_FILE_IDS[f'Colloscope{classe}.xlsx'])
     excel_legende = charger_excel_drive(DRIVE_FILE_IDS[f'Legende{classe}'])
+    
+    if not excel_colloscope or not excel_legende:
+        return {}, {}, []
+
     feuille_colloscope = excel_colloscope.active
     feuille_legende = excel_legende.active
 
@@ -274,7 +295,7 @@ def debug_dialog():
         if code_secret_input == CODE_PROPRIETAIRE:
             st.session_state["authenticated_owner"] = True
             st.success("Accès accordé !")
-            st.rerun() 
+            st.rerun()  
         else:
             st.error("Code incorrect.")
             st.session_state["authenticated_owner"] = False
@@ -335,7 +356,7 @@ def principal():
     if st.session_state.get("authenticated_owner", False):
         with main_tabs[1]:
             st.subheader("Outils Propriétaire")
-            if st.button("Déconnexion"): 
+            if st.button("Déconnexion"):  
                 st.session_state["authenticated_owner"] = False
                 st.rerun()
             st.markdown("---")
