@@ -51,11 +51,14 @@ else:
     service = None
 
 # Remplacer ces ID par les vôtres
+# Pour trouver l'ID d'un fichier Google Drive, ouvrez le fichier dans votre navigateur.
+# L'ID se trouve dans l'URL, juste après '/d/' et avant '/edit', par exemple :
+# https://docs.google.com/spreadsheets/d/ID_DU_FICHIER/edit#gid=0
 DRIVE_FILE_IDS = {
-    "Colloscope1.xlsx": "ID_DRIVE_COLLOSCOPE1",
-    "Legende1": "ID_DRIVE_LEGENDE1",
-    "Colloscope2": "ID_DRIVE_COLLOSCOPE2",
-    "Legende2": "ID_DRIVE_LEGENDE2"
+    "Colloscope1.xlsx": "VOTRE_ID_POUR_COLLOSCOPE1", # Remplacez cette valeur
+    "Legende1": "VOTRE_ID_POUR_LEGENDE1", # Remplacez cette valeur
+    "Colloscope2": "VOTRE_ID_POUR_COLLOSCOPE2", # Remplacez cette valeur
+    "Legende2": "VOTRE_ID_POUR_LEGENDE2" # Remplacez cette valeur
 }
 
 # --- Fonctions utilitaires ---
@@ -118,7 +121,6 @@ def charger_donnees(classe, annee_scolaire_str):
         return {}, {}, []
     annee_numerique = int(annee_scolaire_str.split('-')[0])
     
-    # Correction de la KeyError: Ajout de l'extension .xlsx au nom du fichier
     excel_colloscope = charger_excel_drive(DRIVE_FILE_IDS[f'Colloscope{classe}.xlsx'])
     excel_legende = charger_excel_drive(DRIVE_FILE_IDS[f'Legende{classe}'])
     
