@@ -183,7 +183,7 @@ def semaine_actuelle(dates_semaines, date_actuelle=None):
     
     return len(dates_semaines)
 
-def enregistrer_parametres(groupe, semaine, classe):
+def enregistrer_parametres(groupe, semaine, classe): # Retire annee_scolaire
     """Enregistre les paramètres de l'application (groupe, semaine, classe)."""
     with open('config.txt', 'w') as fichier:
         fichier.write(f"{groupe}\n{semaine}\n{classe}")
@@ -197,7 +197,7 @@ def charger_parametres():
     if os.path.exists('config.txt'):
         with open('config.txt', 'r') as fichier:
             lignes = fichier.readlines()
-            if len(lignes) >= 3:
+            if len(lignes) >= 3: # Revient à 3 lignes attendues
                 groupe = lignes[0].strip()
                 semaine = lignes[1].strip()
                 classe = lignes[2].strip()
@@ -248,12 +248,12 @@ def changer_semaine(sens):
         if 1 <= nouvelle_semaine <= 30:
             st.session_state.semaine = nouvelle_semaine
 
-def afficher_donnees_colloscope(annee_scolaire_actuelle):
+def afficher_donnees_colloscope(annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle en paramètre
     groupe = st.session_state.groupe
     semaine = st.session_state.semaine
     classe = st.session_state.classe
 
-    enregistrer_parametres(groupe, semaine, classe)
+    enregistrer_parametres(groupe, semaine, classe) # annee_scolaire n'est plus enregistré
 
     try:
         semaine_int = int(semaine)
@@ -273,7 +273,7 @@ def afficher_donnees_colloscope(annee_scolaire_actuelle):
         st.error("Veuillez entrer un Groupe valide (ex: G1) entre 1 et 20.")
         return
 
-    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire_actuelle)
+    dictionnaire_donnees, dictionnaire_legende, _ = charger_donnees(classe, annee_scolaire_actuelle) # Passe l'année scolaire détectée
     donnees = creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende)
 
     df = pd.DataFrame(donnees, columns=["Professeur", "Jour", "Heure", "Salle", "Matière"])
@@ -283,10 +283,10 @@ def afficher_donnees_colloscope(annee_scolaire_actuelle):
 
 # --- Fonctions d'accès propriétaire (Debug) ---
 
-def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle):
+def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle
     st.subheader("Contenu des dictionnaires")
     try:
-        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_actuelle)
+        dictionnaire_donnees, dictionnaire_legende, dates_semaines = charger_donnees(classe_selectionnee, annee_scolaire_actuelle) # Utilise l'année scolaire actuelle
         
         st.write("### Dictionnaire de Données (`dictionnaire_donnees`)")
         st.json(dictionnaire_donnees)
@@ -301,10 +301,10 @@ def afficher_dictionnaires_secrets(classe_selectionnee, annee_scolaire_actuelle)
     except Exception as e:
         st.error(f"Erreur lors du chargement ou de l'affichage des dictionnaires : {e}")
 
-def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle):
+def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle): # Ajoute annee_scolaire_actuelle
     st.subheader("Outils de débogage")
     
-    st.write(f"**Année Scolaire Détectée Automatiquement :** {annee_scolaire_actuelle}")
+    st.write(f"**Année Scolaire Détectée Automatiquement :** {annee_scolaire_actuelle}") # Affiche l'année détectée
 
     st.markdown("---")
 
@@ -323,47 +323,6 @@ def gerer_outils_debug(classe_selectionnee, annee_scolaire_actuelle):
     st.write(f"**Date et heure actuelle du serveur :** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     st.write("Contenu de `st.session_state`:")
     st.json(st.session_state.to_dict())
-
-# --- Comparateur Excel ---
-
-def comparer_excels(df1, df2, nom_fichier):
-    """Compare structure, première ligne et première colonne entre deux DataFrames."""
-    # Comparaison colonnes et dimensions
-    same_cols = list(df1.columns) == list(df2.columns)
-    same_shape = df1.shape == df2.shape
-
-    st.write(f"### Résultat comparaison : {nom_fichier}")
-    if same_cols and same_shape:
-        st.success(f"✅ {nom_fichier} : même structure (colonnes + dimensions).")
-    else:
-        if not same_cols:
-            st.error(f"⚠️ Colonnes différentes dans {nom_fichier} :")
-            st.write("Référence :", list(df1.columns))
-            st.write("Nouveau :", list(df2.columns))
-        if not same_shape:
-            st.error(f"⚠️ Dimensions différentes dans {nom_fichier} : {df1.shape} vs {df2.shape}")
-
-    # Comparer la première ligne (valeurs)
-    if not df1.empty and not df2.empty:
-        first_row_ref = df1.iloc[0].fillna("").astype(str).tolist()
-        first_row_new = df2.iloc[0].fillna("").astype(str).tolist()
-        if first_row_ref == first_row_new:
-            st.info(f"✅ Première ligne identique ({nom_fichier})")
-        else:
-            st.warning(f"⚠️ Différences dans la première ligne ({nom_fichier})")
-            st.write("Référence :", first_row_ref)
-            st.write("Nouveau :", first_row_new)
-
-    # Comparer la première colonne (valeurs)
-    if df1.shape[0] > 0 and df2.shape[0] > 0:
-        first_col_ref = df1.iloc[:,0].fillna("").astype(str).tolist()
-        first_col_new = df2.iloc[:,0].fillna("").astype(str).tolist()
-        if first_col_ref == first_col_new:
-            st.info(f"✅ Première colonne identique ({nom_fichier})")
-        else:
-            st.warning(f"⚠️ Différences dans la première colonne ({nom_fichier})")
-            st.write("Référence :", first_col_ref)
-            st.write("Nouveau :", first_col_new)
 
 # --- Dialogue d'authentification pour le debug ---
 @st.dialog("Accès Propriétaire")
@@ -409,7 +368,7 @@ def principal():
         st.header("Colloscope")
         
         # Bouton EDT EPS dans la partie principale
-        if st.sidebar.button('EDT EPS', key="edt_eps_btn_main"):
+        if st.button('EDT EPS', key="edt_eps_btn_main"):
             st.image("EPS_page-0001.jpg", caption="EDT EPS TSI1")
             st.image("EPS_page-0002.jpg", caption="EDT EPS TSI2")
 
@@ -463,7 +422,7 @@ def principal():
 
             st.markdown("---")
             # Sous-onglets pour les outils de débogage
-            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug", "Comparateur Excel"])
+            st_debug_tabs = st.tabs(["Dictionnaires", "Outils de Debug"])
 
             with st_debug_tabs[0]:
                 if st.button("Afficher les dictionnaires", key="show_dicts_btn"):
@@ -472,32 +431,6 @@ def principal():
             
             with st_debug_tabs[1]:
                 gerer_outils_debug(st.session_state.classe, annee_scolaire_actuelle)
-
-            with st_debug_tabs[2]:
-                st.subheader("Comparateur Excel")
-
-                # Fichiers de référence (ceux déjà présents sur le serveur)
-                fichier_ref_colloscope = chemin_ressource(f'Colloscope{st.session_state.classe}.xlsx')
-                fichier_ref_legende = chemin_ressource(f'Legende{st.session_state.classe}.xlsx')
-
-                uploaded_colloscope = st.file_uploader("Uploader un nouveau Colloscope", type=["xlsx"], key="new_colloscope")
-                uploaded_legende = st.file_uploader("Uploader une nouvelle Légende", type=["xlsx"], key="new_legende")
-
-                try:
-                    # Comparaison Colloscope
-                    if uploaded_colloscope is not None:
-                        df_ref = pd.read_excel(fichier_ref_colloscope)
-                        df_new = pd.read_excel(uploaded_colloscope)
-                        comparer_excels(df_ref, df_new, f"Colloscope{st.session_state.classe}.xlsx")
-
-                    # Comparaison Légende
-                    if uploaded_legende is not None:
-                        df_ref = pd.read_excel(fichier_ref_legende)
-                        df_new = pd.read_excel(uploaded_legende)
-                        comparer_excels(df_ref, df_new, f"Legende{st.session_state.classe}.xlsx")
-
-                except Exception as e:
-                    st.error(f"Erreur lors de la comparaison : {e}")
 
     # --- Accès Propriétaire via Dialogue ---
     st.sidebar.markdown("<br><br><br><br><br>", unsafe_allow_html=True) 
