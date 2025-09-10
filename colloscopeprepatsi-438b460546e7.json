@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "colloscopeprepatsi",
+  "private_key_id": "438b460546e70951574292adf0d2423e7dd07bbd",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDpFB6CjReZ0jJ9\nFaIflZ1bkrmEqGI77bPTAPv/KibVfvw7mL3u2EjIDATjkw0DoLHaIBJ+oNjzlcFD\nT/jcv9vE2/yZXsof/bgG38X9ymcH49mU9Wb7mR3dtQd+27S+xA3v1gBlYlBl0aks\n1Eah6qxr35i7UTN442XR+kh1PlYmvL65Ol+lnJrx7jMnq6yIchIgWQFgkPbQZlLO\nfI8V9yo2HqydJDrulzzWoXBD9MIAOlzGNbOKv787REv0EZzMVV7zGFCKirYQ9xF7\nJI0JIML9ulJSJPJnhNxyiDhPuSCvI/osqv70LCSeCzvdPDgw6PJy6zCXqQODzBNl\nMV0cyiHLAgMBAAECggEAQSPKUxozml3QlnzRTpp12/3ps1WL/su0EiiYRPv21nwi\n6lUJ4BK6ZI5XX3LdlEH48sk74f/6IjmcRb+4AZntRdtlgUeoncA/CkzH/OHwYZgg\nWy0qlu54FlpdueqVXStV6c2ZVrxfU9WAvnKlOuNnRM681L0g8Yw8DK8ySPIfCbv1\nv33irGzrO993kqc6Kpik1B5X4Wkq2S0hO7PsdIN/TKMRafFlbsphrw5rH9kMew/V\nLdFYDcAF6oX+FML0ZS81KZcy3E8bf1byucStm0hvT47D1yA04LPvwYd8Ux+FK7Rw\n1gsjfW3LzAh8ihHTBJn2S1jF1bPfXhaapTp6cVGewQKBgQD9nS5rZCwNgLgPwWkG\ndC6716WPm4j3X3gJJ2MSjKLIra/Uw6SK5WXN9eKb2ro3nQ9Yel3m4J2V9fkFhrTL\n4qrzvq4PBQmSgMVW1vRRjhRpuMXhhX6Gm+kn+lLMvtbKnEvzNtggRwl8i4CLLlUv\n/YYg/c+1yjdVUT90PgEqnUD3swKBgQDrRXqtKj5oiENztXEm+eQw0Lw4za6nd033\nrkuiGaCV3ELQvDhNd/LBGPyiAb3cyxhzwKd4JS8/isnI/Qe1ddTDhvw5T1vLpIKn\ndIH6Sw0YXGgtZ5Gfm9oXWWoPHVNge7Qgh/dMzlOO8carukZIddihaimbled2X9zW\nq+WQwsqhiQKBgQCP9bYQzabX71YL03zbZf3VML7Q+rfPu4h2ob3yHJSWl0j03C09\njqOwOr/sOkd0JBo+3g8JbDznj91QDrv38+2YOIezDOf3GlNqTNAYry7VKEZjEpTU\nshGyWLzBbh6cmgXexCYAhHJVGRbZam5+tEl71rcd+PBZ5KnBQSUGXIcxUwKBgQDW\nLy+KnA2qvnqhyUnU0OSD6FOiZuWcwckyNfPXA/uk0pvlSaT8KbnPPz8nAezmJ+L/\n5iDQCRIlh+VB29D7yuTCiI3wYqXQE9l6N1/pDBBE4ENbKpFxO8JlRVp/nhP8n0GR\n6BYkTyXU2ZkjV3aKmvZ3pJ1ybhsFMiprKJzal+s++QKBgQD7+gy3jQ0U9Yp+VmHA\n8IaOVB1MAmCbI0Ud9d/at+Hbh9DwDUMtxcXYo5GQl2tmAe73wzBQLfIpDEl35CrF\nEvAsdFD/1d0XK92nDZpbRjRUQF3Kz72CP1tr239a7Fi/Qa+kMtOQ4+0BOfC+L0jc\ncw6weI0dXlvLESYo619VqqN1XQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "excel-860@colloscopeprepatsi.iam.gserviceaccount.com",
+  "client_id": "108685029627404410077",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/excel-860%40colloscopeprepatsi.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
