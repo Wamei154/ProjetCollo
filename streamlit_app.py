@@ -240,6 +240,11 @@ def creer_tableau(groupe, semaine, dictionnaire_donnees, dictionnaire_legende):
                 tableau.append([None, None, None, None, f"Clé inconnue: {cle_legende}"])
                 continue
             elements_assembles = aplatir_liste(dictionnaire_legende[cle_legende])
+
+            # Correction pour s'assurer qu'il y a 4 éléments avant d'ajouter la matière
+            if len(elements_assembles) < 4:
+                elements_assembles.extend([None] * (4 - len(elements_assembles)))
+            
             matiere = "Non spécifié"
             if cle_legende.startswith('M'): matiere = "Mathématiques"
             elif cle_legende.startswith('A'): matiere = "Anglais"
