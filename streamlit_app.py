@@ -55,7 +55,7 @@ else:
 # L'ID se trouve dans l'URL, juste après '/d/' et avant '/edit', par exemple :
 # https://docs.google.com/spreadsheets/d/ID_DU_FICHIER/edit#gid=0
 DRIVE_FILE_IDS = {
-    "Colloscope1.xlsx": "VOTRE_ID_POUR_COLLOSCOPE1", # Remplacez cette valeur
+    "Colloscope1.xlsx": "11UXG4vGy2Roj0CyXhfnhjTbRZWrGU_lB", # Remplacez cette valeur
     "Legende1": "VOTRE_ID_POUR_LEGENDE1", # Remplacez cette valeur
     "Colloscope2": "VOTRE_ID_POUR_COLLOSCOPE2", # Remplacez cette valeur
     "Legende2": "VOTRE_ID_POUR_LEGENDE2" # Remplacez cette valeur
