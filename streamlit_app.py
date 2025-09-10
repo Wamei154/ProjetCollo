@@ -28,9 +28,7 @@ CODE_PROPRIETAIRE = "debug123"
 
 # --- Google Drive ---
 sa_info = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"]["json"])
-
-SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
-credentials = service_account.Credentials.from_service_account_info(sa_info, scopes=SCOPES)
+credentials = service_account.Credentials.from_service_account_info(sa_info)
 
 service = build('drive', 'v3', credentials=credentials)
 
