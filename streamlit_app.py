@@ -26,10 +26,12 @@ st.sidebar.markdown(html_code, unsafe_allow_html=True)
 CODE_PROPRIETAIRE = "debug123"
 
 # --- Google Drive ---
-SERVICE_ACCOUNT_FILE = "colloscopeprepatsi-438b460546e7.json"
+sa_info = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"]["json"])
+
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
-creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-service = build('drive', 'v3', credentials=creds)
+credentials = service_account.Credentials.from_service_account_info(sa_info, scopes=SCOPES)
+
+service = build('drive', 'v3', credentials=credentials)
 
 DRIVE_FILE_IDS = {
     "Colloscope1": "ID_DRIVE_COLLOSCOPE1",
