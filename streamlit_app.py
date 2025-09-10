@@ -38,7 +38,7 @@ credentials = credentials.with_scopes(SCOPES)
 service = build("drive", "v3", credentials=credentials)
 
 DRIVE_FILE_IDS = {
-    "Colloscope1.xlsx": "ID_DRIVE_COLLOSCOPE1",
+    "Colloscope1.xlsx": "11UXG4vGy2Roj0CyXhfnhjTbRZWrGU_lB",
     "Legende1": "ID_DRIVE_LEGENDE1",
     "Colloscope2": "ID_DRIVE_COLLOSCOPE2",
     "Legende2": "ID_DRIVE_LEGENDE2"
