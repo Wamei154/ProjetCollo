@@ -25,7 +25,7 @@ st.sidebar.markdown(html_code, unsafe_allow_html=True)
 CODE_PROPRIETAIRE = "debug123"
 
 # --- Google Drive ---
-SERVICE_ACCOUNT_FILE = "chemin/vers/service_account.json"  # Remplace par ton JSON
+SERVICE_ACCOUNT_FILE = "colloscopeprepatsi-438b460546e7.json"
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 service = build('drive', 'v3', credentials=creds)
