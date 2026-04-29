@@ -250,14 +250,21 @@ def creer_tableau(groupe: str, semaine: str, dictionnaire_donnees: Dict, diction
 
         cle_semaine = donnees_groupe[semaine_int - 1]
 
-        if cle_semaine not in dictionnaire_legende:
-            st.warning(f"⚠️ Clé '{cle_semaine}' introuvable dans la légende.")
+        if not cle_semaine:
             return tableau
 
-        elements = aplatir_liste(dictionnaire_legende[cle_semaine])
-        matiere = determiner_matiere(cle_semaine)
-        elements.append(matiere)
-        tableau.append(elements)
+        # ✅ Supporte plusieurs colles séparées par des espaces (ex: "M10 SI7")
+        cles = cle_semaine.split()
+
+        for cle in cles:
+            if cle not in dictionnaire_legende:
+                st.warning(f"⚠️ Clé '{cle}' introuvable dans la légende.")
+                continue
+
+            elements = aplatir_liste(dictionnaire_legende[cle])
+            matiere = determiner_matiere(cle)
+            elements.append(matiere)
+            tableau.append(elements)
 
     except ValueError:
         st.error("❌ Veuillez entrer une semaine valide (nombre entier).")
