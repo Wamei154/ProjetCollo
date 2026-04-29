@@ -462,6 +462,8 @@ def main():
         st.session_state.classe = classe_default
     if "authenticated_owner" not in st.session_state:
         st.session_state.authenticated_owner = False
+    if "afficher_colloscope" not in st.session_state:
+        st.session_state.afficher_colloscope = False
 
     afficher_logo_sidebar()
     st.sidebar.markdown("---")
@@ -508,7 +510,7 @@ def main():
             key="groupe_input"
         )
 
-        # Index semaine basé sur session_state (BUG CORRIGÉ)
+        # Index semaine basé sur session_state
         semaines_options = [str(i) for i in range(1, CONFIG["max_weeks"] + 1)]
         try:
             semaine_index = semaines_options.index(str(st.session_state.semaine))
@@ -527,20 +529,20 @@ def main():
         cols = st.sidebar.columns(3)
 
         if cols[0].button("📋 Afficher", use_container_width=True, key="afficher_btn"):
-            st.sidebar.info("⚠️ Vérifiez votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope(annee_scolaire_actuelle)
+            st.session_state.afficher_colloscope = True
 
         if cols[1].button("◀ Préc.", use_container_width=True, key="prev_semaine_btn"):
             changer_semaine(-1)
-            st.sidebar.info("⚠️ Vérifiez votre colloscope papier pour éviter les erreurs.", icon="⚠️")
-            afficher_donnees_colloscope(annee_scolaire_actuelle)
-            st.rerun()
+            st.session_state.afficher_colloscope = True
 
         if cols[2].button("Suiv. ▶", use_container_width=True, key="next_semaine_btn"):
             changer_semaine(1)
+            st.session_state.afficher_colloscope = True
+
+        # ✅ Affichage déclenché après rerun, semaine déjà mise à jour
+        if st.session_state.afficher_colloscope:
             st.sidebar.info("⚠️ Vérifiez votre colloscope papier pour éviter les erreurs.", icon="⚠️")
             afficher_donnees_colloscope(annee_scolaire_actuelle)
-            st.rerun()
 
     # ===== ONGLET OUTILS PROPRIÉTAIRE =====
     if st.session_state.get("authenticated_owner", False) and len(tabs) > 1:
@@ -580,6 +582,9 @@ def main():
         """,
         unsafe_allow_html=True
     )
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
