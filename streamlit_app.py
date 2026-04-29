@@ -464,6 +464,7 @@ def main():
         st.session_state.authenticated_owner = False
     if "afficher_colloscope" not in st.session_state:
         st.session_state.afficher_colloscope = False
+        
 
     afficher_logo_sidebar()
     st.sidebar.markdown("---")
@@ -582,9 +583,6 @@ def main():
         """,
         unsafe_allow_html=True
     )
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
